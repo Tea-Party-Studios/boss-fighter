@@ -2,15 +2,14 @@
 ## 1. Ensure that the latest branches on git have been downloaded by clicking the "Fetch from All Remotes" button in the Source Control tab (looks like an Ethernet Icon) \
 ![Fetch from All Remotes button placed on top of the graph subtab](images/fetch.png)
 
-## 2. Run the following commands
-```
-rojo serve
-lune run liveSyncback.luau BossFight.rbxl
-```
-Alternatively, only run the lune command and press the rojo serve icon in the lower right of your screen if available. If it is unavailable, press Ctrl+Shift+P, select Rojo: Open Menu, then sync default.project.json \
-⚠️ NOT syncback.project.json ⚠️
+## 2. Create a new place on Roblox and mark down both the game Id and place Id
 
-## 3. Connect to rojo from Roblox Studio
+## 3. Run the following command
+```
+lune run serve.luau
+```
+
+## 4. Connect to rojo from Roblox Studio
 Open the Rojo plugin from within Roblox Studio, then click Connect.
 
 

@@ -9,7 +9,7 @@ On the bottom left of the editor is a gear icon by default. Click it to open a m
 There you can create a new profile that will be clean of any previous edits you made.
 
 ## 4. Download the following extensions in vs code (button showing 4 squares, with one being tilted on the left)
-![Charmed Icons, Luau Language Server, Rojo, Stylua](images/extensions.png)
+![Charmed Icons, Luau Language Server, Stylua](images/extensions.png)
 
 ## 5. Open your VS Code settings
 Ensure that the highlighted settings are checked
@@ -17,14 +17,13 @@ Ensure that the highlighted settings are checked
 
 ## 6. Clone the repository into the folder using the terminal
 ```
-git clone https://github.com/andre1048576ORG/boss-fighter.git
+git clone https://github.com/Tea-Party-Studios/boss-fighter.git
 ```
 
 ## 7. run the following commands
 ```
 rokit install
 lune run wallyUpdate.luau
-rojo build -o BossFight.rbxl
 ```
 If you are on Windows, you can also run this command to install the rojo plugin to Roblox Studio.
 ```
