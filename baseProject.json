@@ -17,6 +17,9 @@
     "Workspace": {
         "$path": "src/workspace"
     },
+    "Lighting": {
+      "$path": "src/lighting"
+    },
 
     "ServerScriptService": {
       "Server": {
