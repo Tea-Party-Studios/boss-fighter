@@ -6,7 +6,7 @@ local Transition = robloxstatemachine.Transition
 local PlayersDied = Transition.new "Idle"
 
 function PlayersDied:OnDataChanged(data)
-	return #data.combatants == 0
+	return #data.players == 0
 end
 
 return PlayersDied

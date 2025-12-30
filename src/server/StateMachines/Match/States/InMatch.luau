@@ -8,14 +8,16 @@ local State = robloxstatemachine.State
 local InMatch = State.new "InMatch"
 InMatch.Transitions = { require(Match.Transitions.PlayersDied) }
 
-function InMatch:OnEnter(data)
-	local eligiblePlayers = {}
-
-	for _, p in Players:GetPlayers() do
-		if p.Character and p.Character.Humanoid.Health > 0 then
-			table.insert(eligiblePlayers, p)
-		end
+local function allEligiblePlayers(players: { Player })
+	local output = {}
+	for _, p in players do
+		table.insert(output, p)
 	end
+	return output
+end
+
+function InMatch:OnEnter(data)
+	local eligiblePlayers = allEligiblePlayers(Players:GetPlayers())
 
 	local arena = ReplicatedStorage.Shared.models.Arena:Clone()
 	arena.Parent = workspace
@@ -29,20 +31,14 @@ function InMatch:OnEnter(data)
 		p.Character:PivotTo(getRandomPositionInPart(arena.PlayerRange))
 	end
 
-	data.combatants = eligiblePlayers
+	data.players = eligiblePlayers
 	data.arena = arena
 
-	--summon an enemy
+	--TODO: Summon the boss
 end
 
 function InMatch:OnHeartbeat(data)
-	local new_combatants = {}
-	for i, p: Player in data.combatants do
-		if PlayerIsAlive(p) then
-			table.insert(new_combatants, p)
-		end
-	end
-	data.combatants = new_combatants
+	data.players = allEligiblePlayers(data.players)
 end
 
 function InMatch:OnLeave(data)
