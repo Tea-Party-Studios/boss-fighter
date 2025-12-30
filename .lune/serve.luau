@@ -11,18 +11,10 @@ local robloxPlaceName = "BossFight.rbxl"
 local platforms = { "Windows", "Linux" }
 
 if not fs.isFile(secretFileName) then
-	--time to create the file
 	local gameId = stdio.prompt("text", "What is the Game Id?:")
-	print(gameId)
 	local placeId = stdio.prompt("text", "What is the Place Id?:")
-
 	local platform = platforms[stdio.prompt("select", "What platform are you on?", platforms)]
-	print(platform)
-
 	fs.writeFile(secretFileName, `GameId={gameId}\nPlaceId={placeId}\nPlatform={platform}`)
-
-	--print(`please add a {secretFileName} file`)
-	return
 end
 
 local configuration = fs.readFile(secretFileName)
@@ -48,7 +40,7 @@ local placeId = tonumber(findEnvironmentVariable(configuration, "PlaceId"))
 local gameId = tonumber(findEnvironmentVariable(configuration, "GameId"))
 local platform = findEnvironmentVariable(configuration, "Platform")
 
-local baseProject = fs.readFile "baseProject.json"
+local baseProject = fs.readFile "base.project.json"
 local startIndex = string.find(baseProject, '"tree"')
 
 local newProject = insert(baseProject, `"placeId":{placeId},\n\t"gameId":{gameId},\n\t`, startIndex - 1)
