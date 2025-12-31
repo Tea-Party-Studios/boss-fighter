@@ -43,6 +43,6 @@ local newProject = insert(baseProject, `"placeId":{placeId},\n\t"gameId":{gameId
 fs.writeFile("default.project.json", newProject)
 
 process.exec("rojo", { "build", "-o", robloxPlaceName })
-process.create(if process.os == "windows" then "explorer" else "open", { "BossFight.rbxl" })
+process.create(if process.os == "windows" then "explorer" else "open", { robloxPlaceName })
 process.create("rojo", { "serve", "default.project.json" })
 liveSyncback()
