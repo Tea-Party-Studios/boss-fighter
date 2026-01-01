@@ -1,6 +1,7 @@
 local fs = require "@lune/fs"
 local process = require "@lune/process"
 local stdio = require "@lune/stdio"
+local DateTime = require "@lune/datetime"
 
 local liveSyncback = require "./liveSyncback"
 
@@ -42,6 +43,15 @@ local newProject = insert(baseProject, `"placeId":{placeId},\n\t"gameId":{gameId
 
 fs.writeFile("default.project.json", newProject)
 
+--CREATE A BACKUP OF BOSSFIGHT.rbxl if it already exists
+if fs.isFile "BossFight.rbxl" then
+	if not fs.isDir ".BACKUPS" then
+		fs.writeDir ".BACKUPS"
+	end
+	local now = DateTime.now()
+	fs.writeFile(`.BACKUPS/BossFight{now:toRfc3339()}.rbxl`, fs.readFile "BossFight.rbxl")
+	print "Backup made in .BACKUPS"
+end
 process.exec("rojo", { "build", "-o", robloxPlaceName })
 process.create(if process.os == "windows" then "explorer" else "open", { robloxPlaceName })
 process.create("rojo", { "serve", "default.project.json" })
