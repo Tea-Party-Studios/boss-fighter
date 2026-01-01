@@ -49,7 +49,7 @@ if fs.isFile "BossFight.rbxl" then
 		fs.writeDir ".BACKUPS"
 	end
 	local now = DateTime.now()
-	fs.writeFile(`.BACKUPS/BossFight{now:toRfc3339()}.rbxl`, fs.readFile "BossFight.rbxl")
+	fs.writeFile(`.BACKUPS/BossFight{now:formatLocalTime "%Y%m%d_%H%M%S"}.rbxl`, fs.readFile "BossFight.rbxl")
 	print "Backup made in .BACKUPS"
 end
 process.exec("rojo", { "build", "-o", robloxPlaceName })
