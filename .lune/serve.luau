@@ -1,28 +1,17 @@
 local fs = require "@lune/fs"
 local process = require "@lune/process"
-local task = require "@lune/task"
 local stdio = require "@lune/stdio"
+local DateTime = require "@lune/datetime"
 
 local liveSyncback = require "./liveSyncback"
 
 local secretFileName = ".SECRET"
 local robloxPlaceName = "BossFight.rbxl"
 
-local platforms = { "Windows", "Linux" }
-
 if not fs.isFile(secretFileName) then
-	--time to create the file
 	local gameId = stdio.prompt("text", "What is the Game Id?:")
-	print(gameId)
 	local placeId = stdio.prompt("text", "What is the Place Id?:")
-
-	local platform = platforms[stdio.prompt("select", "What platform are you on?", platforms)]
-	print(platform)
-
-	fs.writeFile(secretFileName, `GameId={gameId}\nPlaceId={placeId}\nPlatform={platform}`)
-
-	--print(`please add a {secretFileName} file`)
-	return
+	fs.writeFile(secretFileName, `GameId={gameId}\nPlaceId={placeId}`)
 end
 
 local configuration = fs.readFile(secretFileName)
@@ -46,27 +35,24 @@ end
 
 local placeId = tonumber(findEnvironmentVariable(configuration, "PlaceId"))
 local gameId = tonumber(findEnvironmentVariable(configuration, "GameId"))
-local platform = findEnvironmentVariable(configuration, "Platform")
 
-local baseProject = fs.readFile "baseProject.json"
+local baseProject = fs.readFile "base.project.json"
 local startIndex = string.find(baseProject, '"tree"')
 
 local newProject = insert(baseProject, `"placeId":{placeId},\n\t"gameId":{gameId},\n\t`, startIndex - 1)
 
 fs.writeFile("default.project.json", newProject)
 
-process.exec("rojo", { "build", "-o", robloxPlaceName })
-
-print "starting executing"
-task.spawn(function()
-	if platform == "Linux" then
-		process.exec("flatpak", { "run", "org.vinegarhq.Vinegar", "BossFight.rbxl" })
-	else
-		print "ok now open the place"
+--CREATE A BACKUP OF BOSSFIGHT.rbxl if it already exists
+if fs.isFile "BossFight.rbxl" then
+	if not fs.isDir ".BACKUPS" then
+		fs.writeDir ".BACKUPS"
 	end
-end)
-task.spawn(function()
-	process.exec("rojo", { "serve", "default.project.json" })
-end)
+	local now = DateTime.now()
+	fs.writeFile(`.BACKUPS/BossFight{now:toRfc3339()}.rbxl`, fs.readFile "BossFight.rbxl")
+	print "Backup made in .BACKUPS"
+end
+process.exec("rojo", { "build", "-o", robloxPlaceName })
+process.create(if process.os == "windows" then "explorer" else "open", { robloxPlaceName })
+process.create("rojo", { "serve", "default.project.json" })
 liveSyncback()
-print "done executin22g"
