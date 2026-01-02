@@ -9,3 +9,10 @@ event PlayerSync = {
         wins: u16,
     },
 }
+
+event InIntermission = {
+	from: Server,
+	type: Reliable,
+	call: SingleAsync,
+	data : (InIntermission: boolean),
+}

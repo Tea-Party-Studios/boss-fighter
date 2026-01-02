@@ -141,6 +141,13 @@ if not RunService:IsRunning() then
 			FireList = noop,
 			FireSet = noop
 		}),
+		InIntermission = table.freeze({
+			Fire = noop,
+			FireAll = noop,
+			FireExcept = noop,
+			FireList = noop,
+			FireSet = noop
+		}),
 	}) :: Events
 end
 
@@ -267,6 +274,98 @@ local returns = {
 			buffer.writeu8(outgoing_buff, outgoing_apos, 0)
 			alloc(2)
 			buffer.writeu16(outgoing_buff, outgoing_apos, Value["wins"])
+			local buff, used, inst = outgoing_buff, outgoing_used, outgoing_inst
+			for player in Set do
+				load_player(player)
+				alloc(used)
+				buffer.copy(outgoing_buff, outgoing_apos, buff, 0, used)
+				table.move(inst, 1, #inst, #outgoing_inst + 1, outgoing_inst)
+				player_map[player] = save()
+			end
+		end,
+	},
+	InIntermission = {
+		Fire = function(Player: Player, InIntermission: (boolean))
+			load_player(Player)
+			alloc(1)
+			buffer.writeu8(outgoing_buff, outgoing_apos, 1)
+			local bool_1 = 0
+			local bool_1_pos_1 = alloc(1)
+			if InIntermission then
+				bool_1 = bit32.bor(bool_1, 0b0000000000000001)
+			end
+			buffer.writeu8(outgoing_buff, bool_1_pos_1, bool_1)
+			player_map[Player] = save()
+		end,
+		FireAll = function(InIntermission: (boolean))
+			load_empty()
+			alloc(1)
+			buffer.writeu8(outgoing_buff, outgoing_apos, 1)
+			local bool_2 = 0
+			local bool_2_pos_1 = alloc(1)
+			if InIntermission then
+				bool_2 = bit32.bor(bool_2, 0b0000000000000001)
+			end
+			buffer.writeu8(outgoing_buff, bool_2_pos_1, bool_2)
+			local buff, used, inst = outgoing_buff, outgoing_used, outgoing_inst
+			for _, player in Players:GetPlayers() do
+				load_player(player)
+				alloc(used)
+				buffer.copy(outgoing_buff, outgoing_apos, buff, 0, used)
+				table.move(inst, 1, #inst, #outgoing_inst + 1, outgoing_inst)
+				player_map[player] = save()
+			end
+		end,
+		FireExcept = function(Except: Player, InIntermission: (boolean))
+			load_empty()
+			alloc(1)
+			buffer.writeu8(outgoing_buff, outgoing_apos, 1)
+			local bool_3 = 0
+			local bool_3_pos_1 = alloc(1)
+			if InIntermission then
+				bool_3 = bit32.bor(bool_3, 0b0000000000000001)
+			end
+			buffer.writeu8(outgoing_buff, bool_3_pos_1, bool_3)
+			local buff, used, inst = outgoing_buff, outgoing_used, outgoing_inst
+			for _, player in Players:GetPlayers() do
+				if player ~= Except then
+					load_player(player)
+					alloc(used)
+					buffer.copy(outgoing_buff, outgoing_apos, buff, 0, used)
+					table.move(inst, 1, #inst, #outgoing_inst + 1, outgoing_inst)
+					player_map[player] = save()
+				end
+			end
+		end,
+		FireList = function(List: { [unknown]: Player }, InIntermission: (boolean))
+			load_empty()
+			alloc(1)
+			buffer.writeu8(outgoing_buff, outgoing_apos, 1)
+			local bool_4 = 0
+			local bool_4_pos_1 = alloc(1)
+			if InIntermission then
+				bool_4 = bit32.bor(bool_4, 0b0000000000000001)
+			end
+			buffer.writeu8(outgoing_buff, bool_4_pos_1, bool_4)
+			local buff, used, inst = outgoing_buff, outgoing_used, outgoing_inst
+			for _, player in List do
+				load_player(player)
+				alloc(used)
+				buffer.copy(outgoing_buff, outgoing_apos, buff, 0, used)
+				table.move(inst, 1, #inst, #outgoing_inst + 1, outgoing_inst)
+				player_map[player] = save()
+			end
+		end,
+		FireSet = function(Set: { [Player]: any }, InIntermission: (boolean))
+			load_empty()
+			alloc(1)
+			buffer.writeu8(outgoing_buff, outgoing_apos, 1)
+			local bool_5 = 0
+			local bool_5_pos_1 = alloc(1)
+			if InIntermission then
+				bool_5 = bit32.bor(bool_5, 0b0000000000000001)
+			end
+			buffer.writeu8(outgoing_buff, bool_5_pos_1, bool_5)
 			local buff, used, inst = outgoing_buff, outgoing_used, outgoing_inst
 			for player in Set do
 				load_player(player)

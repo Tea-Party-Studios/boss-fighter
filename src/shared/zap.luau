@@ -135,6 +135,9 @@ if not RunService:IsRunning() then
 		PlayerSync = table.freeze({
 			SetCallback = noop
 		}),
+		InIntermission = table.freeze({
+			SetCallback = noop
+		}),
 	}) :: Events
 end
 local remotes = ReplicatedStorage:WaitForChild("ZAP")
@@ -159,9 +162,10 @@ end
 
 RunService.Heartbeat:Connect(SendEvents)
 
-local reliable_events = table.create(1)
-local reliable_event_queue: { [number]: { any } } = table.create(1)
+local reliable_events = table.create(2)
+local reliable_event_queue: { [number]: { any } } = table.create(2)
 reliable_event_queue[0] = {}
+reliable_event_queue[1] = {}
 reliable.OnClientEvent:Connect(function(buff, inst)
 	incoming_buff = buff
 	incoming_inst = inst
@@ -180,6 +184,18 @@ reliable.OnClientEvent:Connect(function(buff, inst)
 				table.insert(reliable_event_queue[0], value)
 				if #reliable_event_queue[0] > 64 then
 					warn(`[ZAP] {#reliable_event_queue[0]} events in queue for PlayerSync. Did you forget to attach a listener?`)
+				end
+			end
+		elseif id == 1 then -- InIntermission
+			local value
+			local bool_1 = buffer.readu8(incoming_buff, read(1))
+			value = bit32.btest(bool_1, 0b0000000000000001)
+			if reliable_events[1] then
+				task.spawn(reliable_events[1], value)
+			else
+				table.insert(reliable_event_queue[1], value)
+				if #reliable_event_queue[1] > 64 then
+					warn(`[ZAP] {#reliable_event_queue[1]} events in queue for InIntermission. Did you forget to attach a listener?`)
 				end
 			end
 		else
@@ -203,6 +219,18 @@ local returns = {
 			reliable_event_queue[0] = {}
 			return function()
 				reliable_events[0] = nil
+			end
+		end,
+	},
+	InIntermission = {
+		SetCallback = function(Callback: (InIntermission: (boolean)) -> ()): () -> ()
+			reliable_events[1] = Callback
+			for _, value in reliable_event_queue[1] do
+				task.spawn(Callback, value)
+			end
+			reliable_event_queue[1] = {}
+			return function()
+				reliable_events[1] = nil
 			end
 		end,
 	},

@@ -11,7 +11,8 @@ return function()
 	local function onModified(modifiedTime: DateTime)
 		--print(fs.readFile(file))
 
-		process.exec("rojo", { "syncback", "--input", file, "./syncback.project.json", "-y" })
+		local x = process.exec("rojo", { "syncback", "--input", file, "./syncback.project.json", "-y" })
+		print(x)
 		print(`synced back changes at {modifiedTime:formatLocalTime "%b %d %Y %T"}`)
 	end
 
