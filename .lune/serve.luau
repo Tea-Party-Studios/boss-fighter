@@ -44,5 +44,5 @@ fs.writeFile("default.project.json", newProject)
 
 process.exec("rojo", { "build", "-o", robloxPlaceName })
 process.create(if process.os == "windows" then "explorer" else "open", { robloxPlaceName })
-process.create("rojo", { "serve", "default.project.json" })
+--process.create("rojo", { "serve", "default.project.json" })
 liveSyncback()
