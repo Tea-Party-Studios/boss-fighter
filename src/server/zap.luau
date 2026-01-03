@@ -141,6 +141,12 @@ if not RunService:IsRunning() then
 			FireList = noop,
 			FireSet = noop
 		}),
+		PlayerRoll = table.freeze({
+			SetCallback = noop
+		}),
+		PlayerParry = table.freeze({
+			SetCallback = noop
+		}),
 		InIntermission = table.freeze({
 			Fire = noop,
 			FireAll = noop,
@@ -197,6 +203,30 @@ end
 
 RunService.Heartbeat:Connect(SendEvents)
 
+local reliable_events = table.create(2)
+reliable.OnServerEvent:Connect(function(player, buff, inst)
+	incoming_buff = buff
+	incoming_inst = inst
+	incoming_read = 0
+	incoming_ipos = 0
+	local len = buffer.len(buff)
+	while incoming_read < len do
+		local id = buffer.readu8(buff, read(1))
+		if id == 0 then -- PlayerRoll
+			local value
+			if reliable_events[0] then
+				task.spawn(reliable_events[0], player, value)
+			end
+		elseif id == 1 then -- PlayerParry
+			local value
+			if reliable_events[1] then
+				task.spawn(reliable_events[1], player, value)
+			end
+		else
+			error("Unknown event id")
+		end
+	end
+end)
 table.freeze(polling_queues_reliable)
 table.freeze(polling_queues_unreliable)
 
@@ -281,6 +311,22 @@ local returns = {
 				buffer.copy(outgoing_buff, outgoing_apos, buff, 0, used)
 				table.move(inst, 1, #inst, #outgoing_inst + 1, outgoing_inst)
 				player_map[player] = save()
+			end
+		end,
+	},
+	PlayerRoll = {
+		SetCallback = function(Callback: (Player: Player) -> ()): () -> ()
+			reliable_events[0] = Callback
+			return function()
+				reliable_events[0] = nil
+			end
+		end,
+	},
+	PlayerParry = {
+		SetCallback = function(Callback: (Player: Player) -> ()): () -> ()
+			reliable_events[1] = Callback
+			return function()
+				reliable_events[1] = nil
 			end
 		end,
 	},
