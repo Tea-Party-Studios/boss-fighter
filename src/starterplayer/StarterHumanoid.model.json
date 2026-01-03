@@ -1,0 +1,13 @@
+{
+    "ClassName": "Humanoid",
+    "Properties": {
+        "Attributes": {
+            "Stamina": {
+                "Float64": 100
+            },
+            "MaxStamina": {
+                "Float64": 100
+            }
+        }
+    }
+}

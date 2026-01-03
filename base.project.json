@@ -2,7 +2,6 @@
   "name": "boss-fighter",
   "tree": {
     "$className": "DataModel",
-
     "ReplicatedStorage": {
       "Shared": {
         "$path": "src/shared"
@@ -15,7 +14,7 @@
       }
     },
     "Workspace": {
-        "$path": "src/workspace"
+      "$path": "src/workspace"
     },
     "Lighting": {
       "$properties": {
@@ -40,26 +39,23 @@
       },
       "$path": "src/lighting"
     },
-
     "ServerScriptService": {
       "Server": {
         "$path": "src/server"
       }
     },
-
     "StarterPlayer": {
+      "$path": "src/starterplayer",
       "StarterPlayerScripts": {
         "Client": {
           "$path": "src/client"
         }
       }
     },
-
     "ServerStorage": {
       "Stories": {
         "$path": "src/stories"
       }
     }
-
   }
 }

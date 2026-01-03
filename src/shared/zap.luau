@@ -135,6 +135,12 @@ if not RunService:IsRunning() then
 		PlayerSync = table.freeze({
 			SetCallback = noop
 		}),
+		PlayerRoll = table.freeze({
+			Fire = noop
+		}),
+		PlayerParry = table.freeze({
+			Fire = noop
+		}),
 		InIntermission = table.freeze({
 			SetCallback = noop
 		}),
@@ -220,6 +226,18 @@ local returns = {
 			return function()
 				reliable_events[0] = nil
 			end
+		end,
+	},
+	PlayerRoll = {
+		Fire = function()
+			alloc(1)
+			buffer.writeu8(outgoing_buff, outgoing_apos, 0)
+		end,
+	},
+	PlayerParry = {
+		Fire = function()
+			alloc(1)
+			buffer.writeu8(outgoing_buff, outgoing_apos, 1)
 		end,
 	},
 	InIntermission = {

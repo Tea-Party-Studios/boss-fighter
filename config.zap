@@ -16,3 +16,15 @@ event InIntermission = {
 	call: SingleAsync,
 	data : (InIntermission: boolean),
 }
+
+event PlayerRoll = {
+	from: Client,
+	type: Reliable,
+	call: SingleAsync,
+}
+
+event PlayerParry = {
+	from: Client,
+	type: Reliable,
+	call: SingleAsync,
+}
