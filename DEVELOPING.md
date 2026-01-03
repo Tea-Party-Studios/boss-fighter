@@ -6,7 +6,7 @@
 
 ## 3. Run the following command
 ```
-lune run serve.luau
+lune run serve
 ```
 Note that if this did not open studio automatically, then you must open the BossFight.rbxl file in your repository
 
