@@ -2,6 +2,7 @@ local fs = require "@lune/fs"
 local process = require "@lune/process"
 local stdio = require "@lune/stdio"
 local DateTime = require "@lune/datetime"
+local task = require "@lune/task"
 
 local liveSyncback = require "./liveSyncback"
 
@@ -53,6 +54,10 @@ if fs.isFile "BossFight.rbxl" then
 	print "Backup made in .BACKUPS"
 end
 process.exec("rojo", { "build", "-o", robloxPlaceName })
---process.create(if process.os == "windows" then "explorer" else "open", { robloxPlaceName })
---process.create("rojo", { "serve", "default.project.json" })
+task.spawn(function()
+	process.exec(if process.os == "windows" then "explorer" else "open", { robloxPlaceName })
+end)
+task.spawn(function()
+	process.exec("rojo", { "serve", "default.project.json" })
+end)
 liveSyncback()
