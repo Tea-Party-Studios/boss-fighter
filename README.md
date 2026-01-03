@@ -23,7 +23,7 @@ git clone https://github.com/Tea-Party-Studios/boss-fighter.git
 ## 7. run the following commands
 ```
 rokit install
-lune run wallyUpdate.luau
+lune run wallyUpdate
 ```
 If you are on Windows, you can also run this command to install the rojo plugin to Roblox Studio.
 ```
