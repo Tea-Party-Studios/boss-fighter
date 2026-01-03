@@ -21,6 +21,7 @@ function onRoll()
 	end
 	zap.PlayerRoll.Fire()
 
+	--[[
 	local bv: BodyVelocity = Instance.new "BodyVelocity"
 	bv.MaxForce = Vector3.new(math.huge, 0, math.huge)
 	bv.P = math.huge
@@ -31,12 +32,13 @@ function onRoll()
 	bv.Velocity += character.PrimaryPart.AssemblyLinearVelocity
 	bv.Parent = character.PrimaryPart
 	Debris:AddItem(bv, 0.1)
+	]]
 
 	--[[
-    -- Linear Velocity messes with network ownership or something
+	-- Linear Velocity messes with network ownership or something
 	local lv: LinearVelocity = Instance.new "LinearVelocity"
 	lv.ForceLimitMode = Enum.ForceLimitMode.PerAxis
-	lv.ForceLimitsEnabled = true
+	lv.ForceLimitsEnabled = false
 	lv.Attachment0 = character.PrimaryPart:FindFirstChildOfClass "Attachment"
 	lv.MaxAxesForce = Vector3.new(1, 0, 1) * math.huge
 	lv.VectorVelocity = if humanoid.MoveDirection ~= Vector3.zero
@@ -46,7 +48,30 @@ function onRoll()
 	lv.RelativeTo = Enum.ActuatorRelativeTo.World
 	lv.Parent = character.PrimaryPart
 	Debris:AddItem(lv, 0.1)
-    --]]
+	--]]
+
+	local function flattenVector3(v3: Vector3)
+		if v3.X == 0 and v3.Z == 0 then
+			return Vector2.zero
+		end
+		return Vector2.new(v3.X, v3.Z).Unit
+	end
+
+	--not a good enough reason to not use linear velocity
+	local lv: LinearVelocity = Instance.new "LinearVelocity"
+	lv.ForceLimitsEnabled = false
+	lv.Attachment0 = character.PrimaryPart:FindFirstChildOfClass "Attachment"
+	lv.RelativeTo = Enum.ActuatorRelativeTo.World
+	lv.VelocityConstraintMode = Enum.VelocityConstraintMode.Plane
+	lv.PrimaryTangentAxis = Vector3.xAxis
+	lv.SecondaryTangentAxis = Vector3.zAxis
+	local unTransformedVelocity = if humanoid.MoveDirection ~= Vector3.zero
+		then humanoid.MoveDirection
+		else character.PrimaryPart.CFrame.LookVector
+	lv.PlaneVelocity = flattenVector3(unTransformedVelocity)
+	lv.PlaneVelocity *= 64
+	lv.Parent = character.PrimaryPart
+	Debris:AddItem(lv, 0.1)
 end
 
 function onParry()
