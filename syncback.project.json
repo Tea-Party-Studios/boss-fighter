@@ -14,6 +14,7 @@
         "EnvironmentSpecularScale": 1.0,
         "GeographicLatitude": 0.0,
         "GlobalShadows": true,
+        "LightingStyle": "Realistic",
         "OutdoorAmbient": [
           0.27450981736183167,
           0.27450981736183167,

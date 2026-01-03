@@ -21,17 +21,32 @@ function onRoll()
 	end
 	zap.PlayerRoll.Fire()
 
-	local lv = Instance.new "LinearVelocity"
-	lv.Attachment0 = character.PrimaryPart:FindFirstChildOfClass "Attachment"
-	lv.VectorVelocity = if humanoid.MoveDirection
+	local bv: BodyVelocity = Instance.new "BodyVelocity"
+	bv.MaxForce = Vector3.new(math.huge, 0, math.huge)
+	bv.P = math.huge
+	bv.Velocity = if humanoid.MoveDirection ~= Vector3.zero
 		then humanoid.MoveDirection
 		else character.PrimaryPart.CFrame.LookVector
-	lv.VectorVelocity *= Vector3.new(1, 0, 1)
+	bv.Velocity *= 64
+	bv.Velocity += character.PrimaryPart.AssemblyLinearVelocity
+	bv.Parent = character.PrimaryPart
+	Debris:AddItem(bv, 0.1)
+
+	--[[
+    -- Linear Velocity messes with network ownership or something
+	local lv: LinearVelocity = Instance.new "LinearVelocity"
 	lv.ForceLimitMode = Enum.ForceLimitMode.PerAxis
+	lv.ForceLimitsEnabled = true
+	lv.Attachment0 = character.PrimaryPart:FindFirstChildOfClass "Attachment"
 	lv.MaxAxesForce = Vector3.new(1, 0, 1) * math.huge
-	lv.VectorVelocity += character.PrimaryPart.AssemblyLinearVelocity
-	Debris:AddItem(lv, 0.1)
+	lv.VectorVelocity = if humanoid.MoveDirection ~= Vector3.zero
+		then humanoid.MoveDirection
+		else character.PrimaryPart.CFrame.LookVector
+	lv.VectorVelocity *= 64
+	lv.RelativeTo = Enum.ActuatorRelativeTo.World
 	lv.Parent = character.PrimaryPart
+	Debris:AddItem(lv, 0.1)
+    --]]
 end
 
 function onParry()
