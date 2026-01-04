@@ -11,8 +11,8 @@ local show = vide.show
 
 mount(function()
 	return create "ScreenGui" {
-		show(vide_sources.InIntermission, Intermission),
 		StatMenu(),
+		show(vide_sources.InIntermission, Intermission),
 		IgnoreGuiInset = true,
 	}
 end, Players.LocalPlayer.PlayerGui)
