@@ -3,7 +3,6 @@ local TweenService = game:GetService "TweenService"
 local vide = require(ReplicatedStorage.Packages.vide)
 local create = vide.create
 local source = vide.source
-local effect = vide.effect
 local derive = vide.derive
 
 local function tweenGradient(object: UIGradient)
