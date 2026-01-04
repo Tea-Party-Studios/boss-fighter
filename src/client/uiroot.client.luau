@@ -11,7 +11,7 @@ local show = vide.show
 
 mount(function()
 	return create "ScreenGui" {
-		component,
+		component(),
 		show(vide_sources.InIntermission, intermission),
 		IgnoreGuiInset = true,
 	}
