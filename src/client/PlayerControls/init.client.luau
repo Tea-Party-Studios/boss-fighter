@@ -38,7 +38,7 @@ function onRoll()
 	-- Linear Velocity messes with network ownership or something
 	local lv: LinearVelocity = Instance.new "LinearVelocity"
 	lv.ForceLimitMode = Enum.ForceLimitMode.PerAxis
-	lv.ForceLimitsEnabled = false
+	lv.ForceLimitsEnabled = true
 	lv.Attachment0 = character.PrimaryPart:FindFirstChildOfClass "Attachment"
 	lv.MaxAxesForce = Vector3.new(1, 0, 1) * math.huge
 	lv.VectorVelocity = if humanoid.MoveDirection ~= Vector3.zero
@@ -71,7 +71,24 @@ function onRoll()
 	lv.PlaneVelocity = flattenVector3(unTransformedVelocity)
 	lv.PlaneVelocity *= 64
 	lv.Parent = character.PrimaryPart
-	Debris:AddItem(lv, 0.1)
+	task.delay(0.2, function()
+		lv.PlaneVelocity = Vector2.zero
+		task.wait()
+		lv:Destroy()
+	end)
+
+	character.PrimaryPart:ApplyImpulse(Vector3.yAxis * 100)
+
+	local lv2: LinearVelocity = Instance.new "LinearVelocity"
+	lv2.Name = "AntiGravity"
+	lv2.ForceLimitsEnabled = false
+	lv2.Attachment0 = character.PrimaryPart:FindFirstChildOfClass "Attachment"
+	lv2.RelativeTo = Enum.ActuatorRelativeTo.World
+	lv2.VelocityConstraintMode = Enum.VelocityConstraintMode.Line
+	lv2.Parent = character.PrimaryPart
+	lv2.LineDirection = Vector3.yAxis
+	lv2.LineVelocity = 1
+	Debris:AddItem(lv2, 0.2)
 end
 
 function onParry()
