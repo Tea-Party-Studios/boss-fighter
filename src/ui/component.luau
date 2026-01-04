@@ -16,12 +16,17 @@ end
 
 local pointsRemaining = source(60)
 local strengthCount = source(0)
+<<<<<<< HEAD
 local enduranceCount = source(0)
 local energyCount = source(0)
 
 local function strengthCounter()
 	local strengthFrame = create "Frame" {
 		Size = UDim2.fromScale(1,1),
+<<<<<<< HEAD
+=======
+=======
+>>>>>>> d5f4a6758fce40febd8c390ecc31ede4def0096d
 
 local bar = function()
 	local barSize = derive(function()
@@ -32,6 +37,10 @@ local bar = function()
 	end)
 	return create "Frame" {
 		Size = UDim2.fromScale(1, 1),
+<<<<<<< HEAD
+=======
+>>>>>>> 830401cbfcde961e13a5ad15c6db1ad875ed55da
+>>>>>>> d5f4a6758fce40febd8c390ecc31ede4def0096d
 		BackgroundTransparency = 1,
 		create "TextLabel" {
 			Size = UDim2.fromScale(40 / 1920, 40 / 1080),
@@ -104,6 +113,7 @@ local bar = function()
 	}
 end
 
+<<<<<<< HEAD
 local function enduranceCounter()
 	local enduranceFrame = create "Frame" {
 		Size = UDim2.fromScale(1,1),
@@ -262,6 +272,8 @@ local function energyCounter()
 end
 
 
+=======
+>>>>>>> 830401cbfcde961e13a5ad15c6db1ad875ed55da
 return function()
 	local pointsText = derive(function()
 		return `Free Points: {pointsRemaining()}`
@@ -292,6 +304,7 @@ return function()
 			},
 		},
 	}
+<<<<<<< HEAD
 	local enduranceLabel = create "TextLabel" {
 		Name = "endurance",
 		Size = UDim2.fromScale(125 / 1920, 37 / 1080),
@@ -329,6 +342,8 @@ return function()
 	local strengthFrame = strengthCounter()
 	local enduranceFrame = enduranceCounter()
 	local energyFrame = energyCounter()
+=======
+>>>>>>> 830401cbfcde961e13a5ad15c6db1ad875ed55da
 	tweenGradient(strengthLabel.UIGradient)
 	tweenGradient(enduranceLabel.UIGradient)
 	tweenGradient(energyLabel.UIGradient)
@@ -399,11 +414,18 @@ return function()
 		},
 		freePoints,
 		strengthLabel,
+<<<<<<< HEAD
 		enduranceLabel,
 		energyLabel,
 		strengthFrame,
 		enduranceFrame,
 		energyFrame,
+<<<<<<< HEAD
 		bar(),
+=======
+=======
+		bar(),
+>>>>>>> 830401cbfcde961e13a5ad15c6db1ad875ed55da
+>>>>>>> d5f4a6758fce40febd8c390ecc31ede4def0096d
 	}
 end
