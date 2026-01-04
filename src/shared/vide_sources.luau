@@ -5,5 +5,5 @@ local source = vide.source
 
 return {
 	InIntermission = source(false),
-	IntermissionTime = source(0),
+	InStatMenu = source(false),
 }

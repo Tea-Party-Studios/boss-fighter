@@ -54,10 +54,6 @@ if fs.isFile "BossFight.rbxl" then
 	print "Backup made in .BACKUPS"
 end
 process.exec("rojo", { "build", "-o", robloxPlaceName })
-task.spawn(function()
-	process.exec(if process.os == "windows" then "explorer" else "open", { robloxPlaceName })
-end)
-task.spawn(function()
-	process.exec("rojo", { "serve", "default.project.json" })
-end)
+process.create(if process.os == "windows" then "explorer" else "open", { robloxPlaceName })
+--process.create("rojo", { "serve", "default.project.json" })
 liveSyncback()

@@ -1,14 +1,13 @@
 local ReplicatedStorage = game:GetService "ReplicatedStorage"
-local RunService = game:GetService "RunService"
 local vide = require(ReplicatedStorage.Packages.vide)
-local vide_sources = require(ReplicatedStorage.Shared.vide_sources)
+local RunService = game:GetService "RunService"
 local create = vide.create
 local derive = vide.derive
 local action = vide.action
 local cleanup = vide.cleanup
+local source = vide.source
 
-local countdown = function(seconds: number)
-	--vide_sources.IntermissionTime(seconds)
+local countdown = function(time_source)
 	return action(function()
 		local timer = 0
 		local cn
@@ -16,8 +15,8 @@ local countdown = function(seconds: number)
 			timer += delta
 			if timer >= 1 then
 				timer -= 1
-				vide_sources.IntermissionTime(vide_sources.IntermissionTime() - 1)
-				if vide_sources.IntermissionTime() == 0 then
+				time_source(time_source() - 1)
+				if time_source() == 0 then
 					cn:Disconnect()
 				end
 			end
@@ -26,30 +25,26 @@ local countdown = function(seconds: number)
 	end)
 end
 
-local function Button()
-	vide_sources.IntermissionTime(10)
+local function Intermission()
+	local intermissionTime = source(10)
 	local IntermissionText = derive(function()
-		local time_left = vide_sources.IntermissionTime()
+		local time_left = intermissionTime()
 		if time_left > 0 then
 			return `Time until match starts: {time_left}`
 		end
 		return "Match starting..."
 	end)
-	local intermissionDisplay = create "TextLabel" {
+
+	return create "TextLabel" {
+		Text = IntermissionText,
 		BackgroundTransparency = 0.5,
 		TextColor3 = Color3.fromRGB(0, 0, 0),
 		TextScaled = true,
 		Position = UDim2.fromScale(0.5, 0.05),
 		AnchorPoint = Vector2.new(0.5, 0),
 		Size = UDim2.fromScale(0.3, 0.1),
-		Text = IntermissionText,
-		create "UICorner" {
-			CornerRadius = UDim.new(0.3, 0),
-		},
-		countdown(10),
+		countdown(intermissionTime),
 	}
-
-	return intermissionDisplay
 end
 
-return Button
+return Intermission

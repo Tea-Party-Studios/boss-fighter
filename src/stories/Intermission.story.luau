@@ -1,7 +1,7 @@
 local ReplicatedStorage = game:GetService "ReplicatedStorage"
 local vide = require(ReplicatedStorage.Packages.vide)
 local ui_labs = require(ReplicatedStorage.Packages["ui-labs"])
-local intermission = require(ReplicatedStorage.UI.intermission)
+local Intermission = require(ReplicatedStorage.UI.Intermission)
 
 local controls = {
 	DeviceCanvas = ui_labs.EnumList(
@@ -17,7 +17,7 @@ local story = {
 		return vide.create "Frame" {
 			Size = props.controls.DeviceCanvas,
 			BackgroundTransparency = 0.2,
-			intermission,
+			Intermission(),
 		}
 	end,
 }
