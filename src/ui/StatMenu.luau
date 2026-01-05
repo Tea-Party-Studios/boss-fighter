@@ -1,4 +1,3 @@
-local AssetCounterService = game:GetService("AssetCounterService")
 local ReplicatedStorage = game:GetService "ReplicatedStorage"
 local TweenService = game:GetService "TweenService"
 local vide = require(ReplicatedStorage.Packages.vide)
@@ -19,8 +18,7 @@ local strengthCount = source(0)
 local enduranceCount = source(0)
 local energyCount = source(0)
 
-
-local bar = function(props:{
+local bar = function(props: {
 	Color: Color3,
 	Color2: Color3,
 	Color3: Color3,
@@ -68,7 +66,7 @@ local bar = function(props:{
 		},
 		create "CanvasGroup" {
 			Size = UDim2.fromScale(500 / 1920, 23 / 1080),
-			Position = props.Position + UDim2.fromScale(-434/1920,52/1080),--UDim2.fromScale(166 / 1920, 600 / 1080),
+			Position = props.Position + UDim2.fromScale(-434 / 1920, 52 / 1080), --UDim2.fromScale(166 / 1920, 600 / 1080),
 			BackgroundTransparency = 1,
 			create "UICorner" {
 				CornerRadius = UDim.new(1, 0),
@@ -85,7 +83,7 @@ local bar = function(props:{
 		},
 		create "TextButton" {
 			Size = UDim2.fromScale(40 / 1920, 40 / 1080),
-			Position = props.Position + UDim2.fromScale(-30/1920,0),--UDim2.fromScale(570 / 1920, 548 / 1080),
+			Position = props.Position + UDim2.fromScale(-30 / 1920, 0), --UDim2.fromScale(570 / 1920, 548 / 1080),
 			BackgroundTransparency = 1,
 			TextColor3 = Color3.new(1, 1, 1),
 			Text = "-",
@@ -106,7 +104,7 @@ local bar = function(props:{
 		},
 		create "TextButton" {
 			Size = UDim2.fromScale(40 / 1920, 40 / 1080),
-			Position = props.Position + UDim2.fromScale(30/1920,0),
+			Position = props.Position + UDim2.fromScale(30 / 1920, 0),
 			BackgroundTransparency = 1,
 			TextColor3 = Color3.new(1, 1, 1),
 			Text = "+",
@@ -167,11 +165,11 @@ return function()
 			create "TextLabel" {
 				Text = "Save",
 				TextScaled = true,
-				TextColor3 = Color3.new(1,1,1),
+				TextColor3 = Color3.new(1, 1, 1),
 				FontFace = Font.fromName "ComicNeueAngular",
-				Size = UDim2.fromScale(1,1),
+				Size = UDim2.fromScale(1, 1),
 				BackgroundTransparency = 1,
-			}
+			},
 		},
 		create "ImageLabel" {
 			Image = "rbxassetid://116531422214615",
@@ -218,16 +216,16 @@ return function()
 			FontFace = Font.fromName "ComicNeueAngular",
 		},
 		freePoints,
-		bar({
-			Color = Color3.new(1,0,0),
+		bar {
+			Color = Color3.new(1, 0, 0),
 			Color2 = Color3.new(0.32549, 0, 0),
 			Color3 = Color3.new(0.694118, 0, 0),
 			Color4 = Color3.new(0.454902, 0, 0),
 			Position = UDim2.fromScale(600 / 1920, 548 / 1080),
 			Text = "Strength",
 			Counter = strengthCount,
-		}),
-		bar({
+		},
+		bar {
 			Color = Color3.new(0, 1, 0.05098),
 			Color2 = Color3.new(0.054902, 0.32549, 0),
 			Color3 = Color3.new(0.113725, 0.694118, 0),
@@ -235,8 +233,8 @@ return function()
 			Position = UDim2.fromScale(600 / 1920, 678 / 1080),
 			Text = "Endurance",
 			Counter = enduranceCount,
-		}),
-		bar({
+		},
+		bar {
 			Color = Color3.new(0.984314, 1, 0),
 			Color2 = Color3.new(0.447059, 0.439216, 0),
 			Color3 = Color3.new(0.760784, 0.772549, 0),
@@ -244,6 +242,6 @@ return function()
 			Position = UDim2.fromScale(600 / 1920, 808 / 1080),
 			Text = "Energy",
 			Counter = energyCount,
-		}),
+		},
 	}
 end
