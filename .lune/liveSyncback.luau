@@ -12,7 +12,6 @@ return function()
 		--print(fs.readFile(file))
 
 		local x = process.exec("rojo", { "syncback", "--input", file, "./syncback.project.json", "-y" })
-		print(x)
 		print(`synced back changes at {modifiedTime:formatLocalTime "%b %d %Y %T"}`)
 	end
 
