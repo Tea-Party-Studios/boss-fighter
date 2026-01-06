@@ -11,6 +11,9 @@
       },
       "UI": {
         "$path": "src/ui"
+      },
+      "Config": {
+        "$path": "src/config"
       }
     },
     "Workspace": {

@@ -1,6 +1,7 @@
 local ReplicatedStorage = game:GetService "ReplicatedStorage"
 local vide = require(ReplicatedStorage.Packages.vide)
 local RunService = game:GetService "RunService"
+local match = require(ReplicatedStorage.Config.match)
 local create = vide.create
 local derive = vide.derive
 local action = vide.action
@@ -26,7 +27,7 @@ local countdown = function(time_source)
 end
 
 local function Intermission()
-	local intermissionTime = source(10)
+	local intermissionTime = source(match.IntermissionTime)
 	local IntermissionText = derive(function()
 		local time_left = intermissionTime()
 		if time_left > 0 then
