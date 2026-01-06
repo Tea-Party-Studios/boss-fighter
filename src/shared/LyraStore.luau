@@ -8,10 +8,20 @@ local LyraStore = {}
 
 local template = {
 	wins = 0,
+	current_stats = {
+		strength = 0,
+		endurance = 0,
+		energy = 0,
+	},
 }
 
 local schema = t.strictInterface {
 	wins = t.number,
+	current_stats = t.strictInterface {
+		strength = t.number,
+		endurance = t.number,
+		energy = t.number,
+	},
 }
 
 local function syncWithClient(key: string, newData, oldData)
@@ -30,6 +40,9 @@ local function syncWithClient(key: string, newData, oldData)
 	if newData.wins ~= oldData.wins then
 		changes.wins = newData.wins
 	end
+	if newData.current_stats ~= oldData.current_stats then
+		changes.current_stats = newData.current_stats
+	end
 
 	-- Send changes to client
 	zap.PlayerSync.Fire(player, changes)
@@ -41,4 +54,13 @@ LyraStore.store = Lyra.createPlayerStore {
 	schema = schema,
 	changedCallbacks = { syncWithClient },
 }
+
+function LyraStore.setStats(player: Player, newStats: { endurance: number, energy: number, strength: number })
+	LyraStore.store:updateAsync(player, function(data): boolean
+		data.current_stats = newStats
+		print "saved to server"
+		return true
+	end)
+end
+
 return LyraStore

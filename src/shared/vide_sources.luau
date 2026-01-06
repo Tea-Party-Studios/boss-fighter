@@ -6,4 +6,9 @@ local source = vide.source
 return {
 	InIntermission = source(false),
 	InStatMenu = source(false),
+	Stats = {
+		strengthCount = source(0),
+		energyCount = source(0),
+		enduranceCount = source(0),
+	},
 }
