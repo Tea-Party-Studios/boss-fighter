@@ -2,6 +2,7 @@ local ReplicatedStorage = game:GetService "ReplicatedStorage"
 local TweenService = game:GetService "TweenService"
 local vide = require(ReplicatedStorage.Packages.vide)
 local vide_sources = require(ReplicatedStorage.Shared.vide_sources)
+local zap = require(ReplicatedStorage.Shared.zap)
 local create = vide.create
 local source = vide.source
 local derive = vide.derive
@@ -13,11 +14,6 @@ local function tweenGradient(object: UIGradient)
 	tween:Play()
 end
 
-local pointsRemaining = source(60)
-local strengthCount = source(0)
-local enduranceCount = source(0)
-local energyCount = source(0)
-
 local bar = function(props: {
 	Color: Color3,
 	Color2: Color3,
@@ -25,6 +21,7 @@ local bar = function(props: {
 	Color4: Color3,
 	Position: UDim2,
 	Counter: () -> number,
+	RemainingPoints: () -> number,
 	Text: string,
 })
 	local barSize = derive(function()
@@ -96,9 +93,8 @@ local bar = function(props: {
 				},
 			},
 			Activated = function()
-				if props.Counter() > 0 and pointsRemaining() < 60 then
+				if props.Counter() > 0 then
 					props.Counter(props.Counter() - 1)
-					pointsRemaining(pointsRemaining() + 1)
 				end
 			end,
 		},
@@ -117,9 +113,8 @@ local bar = function(props: {
 				},
 			},
 			Activated = function()
-				if props.Counter() < 60 and pointsRemaining() > 0 then
+				if props.RemainingPoints() > 0 then
 					props.Counter(props.Counter() + 1)
-					pointsRemaining(pointsRemaining() - 1)
 				end
 			end,
 		},
@@ -127,6 +122,12 @@ local bar = function(props: {
 end
 
 return function()
+	local energyCount = vide_sources.Stats.energyCount
+	local strengthCount = vide_sources.Stats.strengthCount
+	local enduranceCount = vide_sources.Stats.enduranceCount
+	local pointsRemaining = derive(function()
+		return 60 - strengthCount() - enduranceCount() - energyCount()
+	end)
 	local pointsText = derive(function()
 		return `Free Points: {pointsRemaining()}`
 	end)
@@ -161,6 +162,7 @@ return function()
 			BackgroundTransparency = 1,
 			Activated = function()
 				vide_sources.InStatMenu(false)
+				zap.UpdateStats.Fire { endurance = enduranceCount(), strength = strengthCount(), energy = energyCount() }
 			end,
 			create "TextLabel" {
 				Text = "Save",
@@ -223,6 +225,7 @@ return function()
 			Color4 = Color3.new(0.454902, 0, 0),
 			Position = UDim2.fromScale(600 / 1920, 548 / 1080),
 			Text = "Strength",
+			RemainingPoints = pointsRemaining,
 			Counter = strengthCount,
 		},
 		bar {
@@ -232,6 +235,7 @@ return function()
 			Color4 = Color3.new(0, 0.454902, 0),
 			Position = UDim2.fromScale(600 / 1920, 678 / 1080),
 			Text = "Endurance",
+			RemainingPoints = pointsRemaining,
 			Counter = enduranceCount,
 		},
 		bar {
@@ -241,6 +245,7 @@ return function()
 			Color4 = Color3.new(0.537255, 0.545098, 0),
 			Position = UDim2.fromScale(600 / 1920, 808 / 1080),
 			Text = "Energy",
+			RemainingPoints = pointsRemaining,
 			Counter = energyCount,
 		},
 	}

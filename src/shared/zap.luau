@@ -132,6 +132,9 @@ if not RunService:IsRunning() then
 	local noop = function() end
 	return table.freeze({
 		SendEvents = noop,
+		UpdateStats = table.freeze({
+			Fire = noop
+		}),
 		PlayerSync = table.freeze({
 			SetCallback = noop
 		}),
@@ -182,8 +185,21 @@ reliable.OnClientEvent:Connect(function(buff, inst)
 		local id = buffer.readu8(buff, read(1))
 		if id == 0 then -- PlayerSync
 			local value
+			local bool_1 = buffer.readu8(incoming_buff, read(1))
 			value = {  }
-			value["wins"] = buffer.readu16(incoming_buff, read(2))
+			if bit32.btest(bool_1, 0b0000000000000001) then
+				value["wins"] = buffer.readu16(incoming_buff, read(2))
+			else
+				value["wins"] = nil
+			end
+			if bit32.btest(bool_1, 0b0000000000000010) then
+				value["current_stats"] = {  }
+				value["current_stats"]["strength"] = buffer.readu8(incoming_buff, read(1))
+				value["current_stats"]["energy"] = buffer.readu8(incoming_buff, read(1))
+				value["current_stats"]["endurance"] = buffer.readu8(incoming_buff, read(1))
+			else
+				value["current_stats"] = nil
+			end
 			if reliable_events[0] then
 				task.spawn(reliable_events[0], value)
 			else
@@ -194,8 +210,8 @@ reliable.OnClientEvent:Connect(function(buff, inst)
 			end
 		elseif id == 1 then -- InIntermission
 			local value
-			local bool_1 = buffer.readu8(incoming_buff, read(1))
-			value = bit32.btest(bool_1, 0b0000000000000001)
+			local bool_2 = buffer.readu8(incoming_buff, read(1))
+			value = bit32.btest(bool_2, 0b0000000000000001)
 			if reliable_events[1] then
 				task.spawn(reliable_events[1], value)
 			else
@@ -214,9 +230,30 @@ table.freeze(polling_queues_unreliable)
 
 local returns = {
 	SendEvents = SendEvents,
+	UpdateStats = {
+		Fire = function(NewStats: ({
+			["strength"]: (number),
+			["energy"]: (number),
+			["endurance"]: (number),
+		}))
+			alloc(1)
+			buffer.writeu8(outgoing_buff, outgoing_apos, 2)
+			alloc(1)
+			buffer.writeu8(outgoing_buff, outgoing_apos, NewStats["strength"])
+			alloc(1)
+			buffer.writeu8(outgoing_buff, outgoing_apos, NewStats["energy"])
+			alloc(1)
+			buffer.writeu8(outgoing_buff, outgoing_apos, NewStats["endurance"])
+		end,
+	},
 	PlayerSync = {
 		SetCallback = function(Callback: (Value: ({
-			["wins"]: (number),
+			["wins"]: ((number)?),
+			["current_stats"]: (({
+				["strength"]: (number),
+				["energy"]: (number),
+				["endurance"]: (number),
+			})?),
 		})) -> ()): () -> ()
 			reliable_events[0] = Callback
 			for _, value in reliable_event_queue[0] do

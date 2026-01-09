@@ -6,7 +6,12 @@ event PlayerSync = {
 	type: Reliable,
 	call: SingleAsync,
 	data: struct {
-        wins: u16,
+        wins: u16?,
+		current_stats: struct {
+			strength: u8,
+			energy: u8,
+			endurance: u8,
+		}?
     },
 }
 
@@ -27,4 +32,15 @@ event PlayerParry = {
 	from: Client,
 	type: Reliable,
 	call: SingleAsync,
+}
+
+event UpdateStats = {
+	from : Client,
+	type : Reliable,
+	call: SingleAsync,
+	data : (NewStats : struct {
+		strength : u8,
+		energy : u8,
+		endurance : u8,
+	})
 }

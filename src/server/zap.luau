@@ -134,6 +134,9 @@ if not RunService:IsRunning() then
 	local noop = function() end
 	return table.freeze({
 		SendEvents = noop,
+		UpdateStats = table.freeze({
+			SetCallback = noop
+		}),
 		PlayerSync = table.freeze({
 			Fire = noop,
 			FireAll = noop,
@@ -203,7 +206,7 @@ end
 
 RunService.Heartbeat:Connect(SendEvents)
 
-local reliable_events = table.create(2)
+local reliable_events = table.create(3)
 reliable.OnServerEvent:Connect(function(player, buff, inst)
 	incoming_buff = buff
 	incoming_inst = inst
@@ -212,7 +215,16 @@ reliable.OnServerEvent:Connect(function(player, buff, inst)
 	local len = buffer.len(buff)
 	while incoming_read < len do
 		local id = buffer.readu8(buff, read(1))
-		if id == 0 then -- PlayerRoll
+		if id == 2 then -- UpdateStats
+			local value
+			value = {  }
+			value["strength"] = buffer.readu8(incoming_buff, read(1))
+			value["energy"] = buffer.readu8(incoming_buff, read(1))
+			value["endurance"] = buffer.readu8(incoming_buff, read(1))
+			if reliable_events[2] then
+				task.spawn(reliable_events[2], player, value)
+			end
+		elseif id == 0 then -- PlayerRoll
 			local value
 			if reliable_events[0] then
 				task.spawn(reliable_events[0], player, value)
@@ -232,25 +244,77 @@ table.freeze(polling_queues_unreliable)
 
 local returns = {
 	SendEvents = SendEvents,
+	UpdateStats = {
+		SetCallback = function(Callback: (Player: Player, NewStats: ({
+			["strength"]: (number),
+			["energy"]: (number),
+			["endurance"]: (number),
+		})) -> ()): () -> ()
+			reliable_events[2] = Callback
+			return function()
+				reliable_events[2] = nil
+			end
+		end,
+	},
 	PlayerSync = {
 		Fire = function(Player: Player, Value: ({
-			["wins"]: (number),
+			["wins"]: ((number)?),
+			["current_stats"]: (({
+				["strength"]: (number),
+				["energy"]: (number),
+				["endurance"]: (number),
+			})?),
 		}))
 			load_player(Player)
 			alloc(1)
 			buffer.writeu8(outgoing_buff, outgoing_apos, 0)
-			alloc(2)
-			buffer.writeu16(outgoing_buff, outgoing_apos, Value["wins"])
+			local bool_1 = 0
+			local bool_1_pos_1 = alloc(1)
+			if Value["wins"] ~= nil then
+				bool_1 = bit32.bor(bool_1, 0b0000000000000001)
+				alloc(2)
+				buffer.writeu16(outgoing_buff, outgoing_apos, Value["wins"])
+			end
+			if Value["current_stats"] ~= nil then
+				bool_1 = bit32.bor(bool_1, 0b0000000000000010)
+				alloc(1)
+				buffer.writeu8(outgoing_buff, outgoing_apos, Value["current_stats"]["strength"])
+				alloc(1)
+				buffer.writeu8(outgoing_buff, outgoing_apos, Value["current_stats"]["energy"])
+				alloc(1)
+				buffer.writeu8(outgoing_buff, outgoing_apos, Value["current_stats"]["endurance"])
+			end
+			buffer.writeu8(outgoing_buff, bool_1_pos_1, bool_1)
 			player_map[Player] = save()
 		end,
 		FireAll = function(Value: ({
-			["wins"]: (number),
+			["wins"]: ((number)?),
+			["current_stats"]: (({
+				["strength"]: (number),
+				["energy"]: (number),
+				["endurance"]: (number),
+			})?),
 		}))
 			load_empty()
 			alloc(1)
 			buffer.writeu8(outgoing_buff, outgoing_apos, 0)
-			alloc(2)
-			buffer.writeu16(outgoing_buff, outgoing_apos, Value["wins"])
+			local bool_2 = 0
+			local bool_2_pos_1 = alloc(1)
+			if Value["wins"] ~= nil then
+				bool_2 = bit32.bor(bool_2, 0b0000000000000001)
+				alloc(2)
+				buffer.writeu16(outgoing_buff, outgoing_apos, Value["wins"])
+			end
+			if Value["current_stats"] ~= nil then
+				bool_2 = bit32.bor(bool_2, 0b0000000000000010)
+				alloc(1)
+				buffer.writeu8(outgoing_buff, outgoing_apos, Value["current_stats"]["strength"])
+				alloc(1)
+				buffer.writeu8(outgoing_buff, outgoing_apos, Value["current_stats"]["energy"])
+				alloc(1)
+				buffer.writeu8(outgoing_buff, outgoing_apos, Value["current_stats"]["endurance"])
+			end
+			buffer.writeu8(outgoing_buff, bool_2_pos_1, bool_2)
 			local buff, used, inst = outgoing_buff, outgoing_used, outgoing_inst
 			for _, player in Players:GetPlayers() do
 				load_player(player)
@@ -261,13 +325,33 @@ local returns = {
 			end
 		end,
 		FireExcept = function(Except: Player, Value: ({
-			["wins"]: (number),
+			["wins"]: ((number)?),
+			["current_stats"]: (({
+				["strength"]: (number),
+				["energy"]: (number),
+				["endurance"]: (number),
+			})?),
 		}))
 			load_empty()
 			alloc(1)
 			buffer.writeu8(outgoing_buff, outgoing_apos, 0)
-			alloc(2)
-			buffer.writeu16(outgoing_buff, outgoing_apos, Value["wins"])
+			local bool_3 = 0
+			local bool_3_pos_1 = alloc(1)
+			if Value["wins"] ~= nil then
+				bool_3 = bit32.bor(bool_3, 0b0000000000000001)
+				alloc(2)
+				buffer.writeu16(outgoing_buff, outgoing_apos, Value["wins"])
+			end
+			if Value["current_stats"] ~= nil then
+				bool_3 = bit32.bor(bool_3, 0b0000000000000010)
+				alloc(1)
+				buffer.writeu8(outgoing_buff, outgoing_apos, Value["current_stats"]["strength"])
+				alloc(1)
+				buffer.writeu8(outgoing_buff, outgoing_apos, Value["current_stats"]["energy"])
+				alloc(1)
+				buffer.writeu8(outgoing_buff, outgoing_apos, Value["current_stats"]["endurance"])
+			end
+			buffer.writeu8(outgoing_buff, bool_3_pos_1, bool_3)
 			local buff, used, inst = outgoing_buff, outgoing_used, outgoing_inst
 			for _, player in Players:GetPlayers() do
 				if player ~= Except then
@@ -280,13 +364,33 @@ local returns = {
 			end
 		end,
 		FireList = function(List: { [unknown]: Player }, Value: ({
-			["wins"]: (number),
+			["wins"]: ((number)?),
+			["current_stats"]: (({
+				["strength"]: (number),
+				["energy"]: (number),
+				["endurance"]: (number),
+			})?),
 		}))
 			load_empty()
 			alloc(1)
 			buffer.writeu8(outgoing_buff, outgoing_apos, 0)
-			alloc(2)
-			buffer.writeu16(outgoing_buff, outgoing_apos, Value["wins"])
+			local bool_4 = 0
+			local bool_4_pos_1 = alloc(1)
+			if Value["wins"] ~= nil then
+				bool_4 = bit32.bor(bool_4, 0b0000000000000001)
+				alloc(2)
+				buffer.writeu16(outgoing_buff, outgoing_apos, Value["wins"])
+			end
+			if Value["current_stats"] ~= nil then
+				bool_4 = bit32.bor(bool_4, 0b0000000000000010)
+				alloc(1)
+				buffer.writeu8(outgoing_buff, outgoing_apos, Value["current_stats"]["strength"])
+				alloc(1)
+				buffer.writeu8(outgoing_buff, outgoing_apos, Value["current_stats"]["energy"])
+				alloc(1)
+				buffer.writeu8(outgoing_buff, outgoing_apos, Value["current_stats"]["endurance"])
+			end
+			buffer.writeu8(outgoing_buff, bool_4_pos_1, bool_4)
 			local buff, used, inst = outgoing_buff, outgoing_used, outgoing_inst
 			for _, player in List do
 				load_player(player)
@@ -297,13 +401,33 @@ local returns = {
 			end
 		end,
 		FireSet = function(Set: { [Player]: any }, Value: ({
-			["wins"]: (number),
+			["wins"]: ((number)?),
+			["current_stats"]: (({
+				["strength"]: (number),
+				["energy"]: (number),
+				["endurance"]: (number),
+			})?),
 		}))
 			load_empty()
 			alloc(1)
 			buffer.writeu8(outgoing_buff, outgoing_apos, 0)
-			alloc(2)
-			buffer.writeu16(outgoing_buff, outgoing_apos, Value["wins"])
+			local bool_5 = 0
+			local bool_5_pos_1 = alloc(1)
+			if Value["wins"] ~= nil then
+				bool_5 = bit32.bor(bool_5, 0b0000000000000001)
+				alloc(2)
+				buffer.writeu16(outgoing_buff, outgoing_apos, Value["wins"])
+			end
+			if Value["current_stats"] ~= nil then
+				bool_5 = bit32.bor(bool_5, 0b0000000000000010)
+				alloc(1)
+				buffer.writeu8(outgoing_buff, outgoing_apos, Value["current_stats"]["strength"])
+				alloc(1)
+				buffer.writeu8(outgoing_buff, outgoing_apos, Value["current_stats"]["energy"])
+				alloc(1)
+				buffer.writeu8(outgoing_buff, outgoing_apos, Value["current_stats"]["endurance"])
+			end
+			buffer.writeu8(outgoing_buff, bool_5_pos_1, bool_5)
 			local buff, used, inst = outgoing_buff, outgoing_used, outgoing_inst
 			for player in Set do
 				load_player(player)
@@ -335,24 +459,24 @@ local returns = {
 			load_player(Player)
 			alloc(1)
 			buffer.writeu8(outgoing_buff, outgoing_apos, 1)
-			local bool_1 = 0
-			local bool_1_pos_1 = alloc(1)
+			local bool_6 = 0
+			local bool_6_pos_1 = alloc(1)
 			if InIntermission then
-				bool_1 = bit32.bor(bool_1, 0b0000000000000001)
+				bool_6 = bit32.bor(bool_6, 0b0000000000000001)
 			end
-			buffer.writeu8(outgoing_buff, bool_1_pos_1, bool_1)
+			buffer.writeu8(outgoing_buff, bool_6_pos_1, bool_6)
 			player_map[Player] = save()
 		end,
 		FireAll = function(InIntermission: (boolean))
 			load_empty()
 			alloc(1)
 			buffer.writeu8(outgoing_buff, outgoing_apos, 1)
-			local bool_2 = 0
-			local bool_2_pos_1 = alloc(1)
+			local bool_7 = 0
+			local bool_7_pos_1 = alloc(1)
 			if InIntermission then
-				bool_2 = bit32.bor(bool_2, 0b0000000000000001)
+				bool_7 = bit32.bor(bool_7, 0b0000000000000001)
 			end
-			buffer.writeu8(outgoing_buff, bool_2_pos_1, bool_2)
+			buffer.writeu8(outgoing_buff, bool_7_pos_1, bool_7)
 			local buff, used, inst = outgoing_buff, outgoing_used, outgoing_inst
 			for _, player in Players:GetPlayers() do
 				load_player(player)
@@ -366,12 +490,12 @@ local returns = {
 			load_empty()
 			alloc(1)
 			buffer.writeu8(outgoing_buff, outgoing_apos, 1)
-			local bool_3 = 0
-			local bool_3_pos_1 = alloc(1)
+			local bool_8 = 0
+			local bool_8_pos_1 = alloc(1)
 			if InIntermission then
-				bool_3 = bit32.bor(bool_3, 0b0000000000000001)
+				bool_8 = bit32.bor(bool_8, 0b0000000000000001)
 			end
-			buffer.writeu8(outgoing_buff, bool_3_pos_1, bool_3)
+			buffer.writeu8(outgoing_buff, bool_8_pos_1, bool_8)
 			local buff, used, inst = outgoing_buff, outgoing_used, outgoing_inst
 			for _, player in Players:GetPlayers() do
 				if player ~= Except then
@@ -387,12 +511,12 @@ local returns = {
 			load_empty()
 			alloc(1)
 			buffer.writeu8(outgoing_buff, outgoing_apos, 1)
-			local bool_4 = 0
-			local bool_4_pos_1 = alloc(1)
+			local bool_9 = 0
+			local bool_9_pos_1 = alloc(1)
 			if InIntermission then
-				bool_4 = bit32.bor(bool_4, 0b0000000000000001)
+				bool_9 = bit32.bor(bool_9, 0b0000000000000001)
 			end
-			buffer.writeu8(outgoing_buff, bool_4_pos_1, bool_4)
+			buffer.writeu8(outgoing_buff, bool_9_pos_1, bool_9)
 			local buff, used, inst = outgoing_buff, outgoing_used, outgoing_inst
 			for _, player in List do
 				load_player(player)
@@ -406,12 +530,12 @@ local returns = {
 			load_empty()
 			alloc(1)
 			buffer.writeu8(outgoing_buff, outgoing_apos, 1)
-			local bool_5 = 0
-			local bool_5_pos_1 = alloc(1)
+			local bool_10 = 0
+			local bool_10_pos_1 = alloc(1)
 			if InIntermission then
-				bool_5 = bit32.bor(bool_5, 0b0000000000000001)
+				bool_10 = bit32.bor(bool_10, 0b0000000000000001)
 			end
-			buffer.writeu8(outgoing_buff, bool_5_pos_1, bool_5)
+			buffer.writeu8(outgoing_buff, bool_10_pos_1, bool_10)
 			local buff, used, inst = outgoing_buff, outgoing_used, outgoing_inst
 			for player in Set do
 				load_player(player)
