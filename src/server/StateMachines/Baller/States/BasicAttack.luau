@@ -1,47 +1,84 @@
-local Debris = game:GetService "Debris"
+local Players = game:GetService "Players"
 local ReplicatedStorage = game:GetService "ReplicatedStorage"
+local RunService = game:GetService "RunService"
 local robloxstatemachine = require(ReplicatedStorage.Packages.robloxstatemachine)
 local Baller = script.Parent.Parent
 local State = robloxstatemachine.State
 
 local BasicAttack = State.new "BasicAttack"
+BasicAttack.Transitions = { require(Baller.Transitions.returnToNeutral) }
 
 function BasicAttack:OnEnter(data)
 	data.baller.MovementVelocity.PlaneVelocity = Vector2.zero
 
 	local target = data.players[1].Character :: Model
-	local targetPos = target:GetPivot().Position
 	local bossPos: Vector3 = data.baller.Torso.Position
 
-	local angle = math.rad(math.random(2, 40))
-	local gravity = workspace.Gravity
+	local angle = math.rad(math.random(20, 70))
+
+	local targetPos = target:GetPivot().Position
+	local tx = (targetPos * Vector3.new(1, 0, 1) - bossPos * Vector3.new(1, 0, 1)).Magnitude
+	local ty = targetPos.Y - bossPos.Y
+
+	local d = math.tan(angle)
+	local a = (d * tx - ty) / -math.pow(tx, 2)
+	if a > 0 then
+		return
+	end
 	local projectile = Instance.new "Part"
 	projectile.Shape = Enum.PartType.Ball
 	projectile.Size = Vector3.one * 4
 
-	--we remove 1 to account for the height difference between the players and baller
-	local distance = (targetPos - bossPos).Magnitude - 1
-	local direction = (targetPos - bossPos).Unit
+	local direction = ((targetPos - bossPos) * Vector3.new(1, 0, 1)).Unit
 	projectile.CanCollide = false
 	projectile.Color = Color3.new(1, 0, 0)
 	projectile.Parent = workspace
-	projectile:SetNetworkOwner(nil)
+	projectile.Anchored = true
 	projectile.Position = bossPos
+	projectile.Material = Enum.Material.SmoothPlastic
 
-	local initialVelocity = math.sqrt(distance * gravity / math.sin(2 * angle))
-	print(initialVelocity, angle)
-	projectile:ApplyImpulse(
-		(
-			direction * Vector3.new(1, 0, 1) * initialVelocity * math.cos(angle)
-			+ Vector3.yAxis * initialVelocity * math.sin(angle)
-		) * projectile.AssemblyMass
-	)
-	Debris:AddItem(projectile, 3)
-	task.delay(1.5, function()
+	local timeToTarget = tx / 50
+	local t = 0
+	local cn = RunService.Heartbeat:Connect(function(dt: number)
+		t += dt * tx / timeToTarget
+		projectile.Position = bossPos + direction * t + Vector3.yAxis * (a * t * t + d * t)
+	end)
+
+	projectile.Touched:Connect(function(part: BasePart)
+		if part.Name ~= "HumanoidRootPart" then
+			return
+		end
+		if not Players:GetPlayerFromCharacter(part.Parent) then
+			return
+		end
+		part.Parent.Humanoid:TakeDamage(10)
+	end)
+
+	task.delay(timeToTarget + 2, function()
+		cn:Disconnect()
+		projectile:Destroy()
+	end)
+	task.delay(0.4, function()
 		data.endState = true
 	end)
 end
 
-BasicAttack.Transitions = { require(Baller.Transitions.returnToNeutral) }
+function BasicAttack:OnHeartbeat(data, dt)
+	local target: Model = data.players[1].Character
+	local targetPos = target:GetPivot().Position
+	local baller: Model = data.baller
+	local ballerPos = baller:GetPivot().Position
+	--look at the character
+	baller.AlignOrientation.CFrame = CFrame.lookAt(ballerPos, targetPos)
+
+	--try to move to some range away from the targetted player
+	local dist = (ballerPos - targetPos).Magnitude
+
+	if dist < 40 then
+		baller.MovementVelocity.PlaneVelocity = Vector2.new(0, -2)
+	elseif dist > 100 then
+		baller.MovementVelocity.PlaneVelocity = Vector2.new(0, 2)
+	end
+end
 
 return BasicAttack
