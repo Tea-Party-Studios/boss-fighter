@@ -27,11 +27,10 @@ function Neutral:OnHeartbeat(data, dt)
 	elseif dist > 100 then
 		baller.MovementVelocity.PlaneVelocity = Vector2.new(0, 2)
 	end
-
 	if data.timer > 1 then
 		data.timer -= 1
 		--figure out what the boss will do (still TODO)
-		if math.random() < 0.5 then
+		if math.random() < 0.7 then
 			data.nextState = "BasicAttack"
 		end
 	end

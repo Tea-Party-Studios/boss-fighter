@@ -23,7 +23,7 @@ function BasicAttack:OnEnter(data)
 	local d = math.tan(angle)
 	local a = (d * tx - ty) / -math.pow(tx, 2)
 	if a > 0 then
-		return
+		a = -1
 	end
 	local projectile = Instance.new "Part"
 	projectile.Shape = Enum.PartType.Ball
@@ -37,7 +37,7 @@ function BasicAttack:OnEnter(data)
 	projectile.Position = bossPos
 	projectile.Material = Enum.Material.SmoothPlastic
 
-	local timeToTarget = tx / 50
+	local timeToTarget = tx / 50 + 0.2
 	local t = 0
 	local cn = RunService.Heartbeat:Connect(function(dt: number)
 		t += dt * tx / timeToTarget
