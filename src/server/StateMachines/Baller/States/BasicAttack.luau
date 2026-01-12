@@ -14,7 +14,7 @@ function BasicAttack:OnEnter(data)
 	local target = data.players[1].Character :: Model
 	local bossPos: Vector3 = data.baller.Torso.Position
 
-	local angle = math.rad(math.random(20, 70))
+	local angle = math.rad(math.random(40, 70))
 
 	local targetPos = target:GetPivot().Position
 	local tx = (targetPos * Vector3.new(1, 0, 1) - bossPos * Vector3.new(1, 0, 1)).Magnitude
@@ -37,11 +37,20 @@ function BasicAttack:OnEnter(data)
 	projectile.Position = bossPos
 	projectile.Material = Enum.Material.SmoothPlastic
 
-	local timeToTarget = tx / 50 + 0.2
-	local t = 0
+	local timeToTarget = 1
+	print(a, angle, tx, ty)
+	local initialVelocity = math.sqrt((-d / a) / math.sin(2 * angle))
+	local velocity = initialVelocity * math.sin(angle) * Vector3.yAxis + initialVelocity * math.cos(angle) * direction
+	local pos = bossPos
+	print(timeToTarget)
 	local cn = RunService.Heartbeat:Connect(function(dt: number)
-		t += dt * tx / timeToTarget
-		projectile.Position = bossPos + direction * t + Vector3.yAxis * (a * t * t + d * t)
+		dt *= tx / timeToTarget / 4 --I believe this /4 was added because I assumed the gravity was 1? Idk
+		local stepVelocity = velocity - Vector3.yAxis * dt
+		local stepDisplacement = (velocity + stepVelocity) / 2 * dt
+		velocity = stepVelocity
+		local nextPos = pos + stepDisplacement
+		pos = nextPos
+		projectile.CFrame = CFrame.new(pos)
 	end)
 
 	projectile.Touched:Connect(function(part: BasePart)
@@ -51,6 +60,7 @@ function BasicAttack:OnEnter(data)
 		if not Players:GetPlayerFromCharacter(part.Parent) then
 			return
 		end
+		print "hit!"
 		part.Parent.Humanoid:TakeDamage(10)
 	end)
 
@@ -58,7 +68,7 @@ function BasicAttack:OnEnter(data)
 		cn:Disconnect()
 		projectile:Destroy()
 	end)
-	task.delay(0.4, function()
+	task.delay(4, function()
 		data.endState = true
 	end)
 end
