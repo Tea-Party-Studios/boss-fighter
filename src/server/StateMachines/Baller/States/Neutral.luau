@@ -4,7 +4,7 @@ local Baller = script.Parent.Parent
 local State = robloxstatemachine.State
 
 local Neutral = State.new "Neutral"
-Neutral.Transitions = { require(Baller.Transitions.beginNeutralAttack) }
+Neutral.Transitions = { require(Baller.Transitions.beginLobbedAttack), require(Baller.Transitions.beginStraightAttack) }
 
 function Neutral:OnEnter(data)
 	data.timer = 0
@@ -31,7 +31,9 @@ function Neutral:OnHeartbeat(data, dt)
 		data.timer -= 1
 		--figure out what the boss will do (still TODO)
 		if math.random() < 0.7 then
-			data.nextState = "BasicAttack"
+			data.nextState = "LobbedAttack"
+		else
+			data.nextState = "StraightAttack"
 		end
 	end
 end

@@ -5,10 +5,10 @@ local robloxstatemachine = require(ReplicatedStorage.Packages.robloxstatemachine
 local Baller = script.Parent.Parent
 local State = robloxstatemachine.State
 
-local BasicAttack = State.new "BasicAttack"
-BasicAttack.Transitions = { require(Baller.Transitions.returnToNeutral) }
+local StraightAttack = State.new "StraightAttack"
+StraightAttack.Transitions = { require(Baller.Transitions.returnToNeutral) }
 
-function BasicAttack:OnEnter(data)
+function StraightAttack:OnEnter(data)
 	data.baller.MovementVelocity.PlaneVelocity = Vector2.zero
 
 	local target = data.players[1].Character :: Model
@@ -17,19 +17,11 @@ function BasicAttack:OnEnter(data)
 	local angle = math.rad(math.random(40, 70))
 
 	local targetPos = target:GetPivot().Position
-	local tx = (targetPos * Vector3.new(1, 0, 1) - bossPos * Vector3.new(1, 0, 1)).Magnitude
-	local ty = targetPos.Y - bossPos.Y
-
-	local d = math.tan(angle)
-	local a = (d * tx - ty) / -math.pow(tx, 2)
-	if a > 0 then
-		a = -1
-	end
 	local projectile = Instance.new "Part"
 	projectile.Shape = Enum.PartType.Ball
 	projectile.Size = Vector3.one * 4
 
-	local direction = ((targetPos - bossPos) * Vector3.new(1, 0, 1)).Unit
+	local direction = (targetPos - bossPos).Unit
 	projectile.CanCollide = false
 	projectile.Color = Color3.new(1, 0, 0)
 	projectile.Parent = workspace
@@ -37,20 +29,14 @@ function BasicAttack:OnEnter(data)
 	projectile.Position = bossPos
 	projectile.Material = Enum.Material.SmoothPlastic
 
-	local timeToTarget = 1
-	print(a, angle, tx, ty)
-	local initialVelocity = math.sqrt((-d / a) / math.sin(2 * angle))
-	local velocity = initialVelocity * math.sin(angle) * Vector3.yAxis + initialVelocity * math.cos(angle) * direction
+	local SPEED = 50
+	local velocity = direction * SPEED
 	local pos = bossPos
-	print(timeToTarget)
+	print "straightShot"
 	local cn = RunService.Heartbeat:Connect(function(dt: number)
-		dt *= tx / timeToTarget / 4 --I believe this /4 was added because I assumed the gravity was 1? Idk
-		local stepVelocity = velocity - Vector3.yAxis * dt
-		local stepDisplacement = (velocity + stepVelocity) / 2 * dt
-		velocity = stepVelocity
-		local nextPos = pos + stepDisplacement
+		local nextPos = pos + velocity * dt
 		pos = nextPos
-		projectile.CFrame = CFrame.new(pos)
+		projectile.CFrame = CFrame.new(pos, pos + velocity)
 	end)
 
 	projectile.Touched:Connect(function(part: BasePart)
@@ -60,11 +46,11 @@ function BasicAttack:OnEnter(data)
 		if not Players:GetPlayerFromCharacter(part.Parent) then
 			return
 		end
-		print "hit!"
+		print "hit straight!"
 		part.Parent.Humanoid:TakeDamage(10)
 	end)
 
-	task.delay(timeToTarget + 2, function()
+	task.delay(4, function()
 		cn:Disconnect()
 		projectile:Destroy()
 	end)
@@ -73,7 +59,7 @@ function BasicAttack:OnEnter(data)
 	end)
 end
 
-function BasicAttack:OnHeartbeat(data, dt)
+function StraightAttack:OnHeartbeat(data, dt)
 	local target: Model = data.players[1].Character
 	local targetPos = target:GetPivot().Position
 	local baller: Model = data.baller
@@ -91,4 +77,4 @@ function BasicAttack:OnHeartbeat(data, dt)
 	end
 end
 
-return BasicAttack
+return StraightAttack
