@@ -3,8 +3,15 @@ local TweenService = game:GetService "TweenService"
 local vide = require(ReplicatedStorage.Packages.vide)
 local vide_sources = require(ReplicatedStorage.Shared.vide_sources)
 local create = vide.create
-local source = vide.source
-local derive = vide.derive
+local action = vide.action
+local cleanup = vide.cleanup
+
+repeat
+	task.wait()
+until vide_sources.Humanoid() ~= nil
+
+local maxHealth = 100
+local maxStam = 100
 
 local function tweenGradient(object: UIGradient)
 	object.Offset = Vector2.new(-1, 0)
@@ -13,13 +20,69 @@ local function tweenGradient(object: UIGradient)
 	tween:Play()
 end
 
---rbxassetid://133480889898713
---rbxassetid://86693771757550
---rbxassetid://90273910497543
---rbxassetid://105124268814587
---rbxassetid://111987314840890
+function resizeCustomLoadingBar(sizeRatio, clipping, top)
+	clipping.Size = UDim2.new(sizeRatio, clipping.Size.X.Offset, clipping.Size.Y.Scale, clipping.Size.Y.Offset)
+	top.Size = UDim2.new((sizeRatio > 0 and 1 / sizeRatio) or 0, top.Size.X.Offset, top.Size.Y.Scale, top.Size.Y.Offset)
+end
+
+local function healthChanged(bar)
+	return action(function()
+		local connection = vide_sources.Humanoid().HealthChanged:Connect(function(newHealth)
+			resizeCustomLoadingBar((newHealth / maxHealth), bar.Frame, bar.Frame.ImageLabel)
+		end)
+		cleanup(connection)
+	end)
+end
+
+local function stamChanged(bar)
+	return action(function()
+		local connection = vide_sources.Humanoid():GetAttributeChangedSignal("Stamina"):Connect(function()
+			local newStam = vide_sources.Humanoid():GetAttribute "Stamina"
+			print(newStam)
+			resizeCustomLoadingBar((newStam / maxStam), bar.Frame, bar.Frame.ImageLabel)
+		end)
+		cleanup(connection)
+	end)
+end
+
 return function()
-	local streaks = create "ImageLabel" {
+	local health = create "ImageLabel" { --health
+		Image = "rbxassetid://136391077137942",
+		Size = UDim2.fromScale(486 / 770, 22 / 278),
+		Position = UDim2.fromScale(263 / 770, 164 / 278),
+		BackgroundTransparency = 1,
+		ImageTransparency = 1,
+		ZIndex = 3,
+		create "Frame" {
+			Size = UDim2.fromScale(1, 1),
+			BackgroundTransparency = 1,
+			ClipsDescendants = true,
+			create "ImageLabel" {
+				Image = "rbxassetid://136391077137942",
+				Size = UDim2.fromScale(1, 1),
+				BackgroundTransparency = 1,
+			},
+		},
+	}
+	local stam = create "ImageLabel" { --stam
+		Image = "rbxassetid://134111671069282",
+		Size = UDim2.fromScale(506 / 770, 17 / 278),
+		Position = UDim2.fromScale(223.5 / 770, 213 / 278),
+		BackgroundTransparency = 1,
+		ImageTransparency = 1,
+		ZIndex = 3,
+		create "Frame" {
+			Size = UDim2.fromScale(1, 1),
+			BackgroundTransparency = 1,
+			ClipsDescendants = true,
+			create "ImageLabel" {
+				Image = "rbxassetid://134111671069282",
+				Size = UDim2.fromScale(1, 1),
+				BackgroundTransparency = 1,
+			},
+		},
+	}
+	local streaks = create "ImageLabel" { --streaks
 		Image = "rbxassetid://111987314840890",
 		Size = UDim2.fromScale(500 / 770, 181 / 278),
 		Position = UDim2.fromScale(220.5 / 770, 106.5 / 278),
@@ -39,10 +102,6 @@ return function()
 		BackgroundColor3 = Color3.fromRGB(107, 92, 92),
 		BackgroundTransparency = 1,
 
-		--rbxassetid://72161129644540
-		--rbxassetid://115296268432934
-		--rbxassetid://98768423323270
-
 		create "Frame" {
 			Size = UDim2.fromScale(770 / 1920, 278 / 1080),
 			Position = UDim2.fromScale(35 / 1920, 47 / 1080),
@@ -50,7 +109,7 @@ return function()
 			create "UIAspectRatioConstraint" {
 				AspectRatio = 770 / 278,
 			},
-			create "ImageLabel" {
+			create "ImageLabel" { -- diamond
 				Image = "rbxassetid://98768423323270",
 				Size = UDim2.fromScale(206 / 770, 206 / 278),
 				Position = UDim2.fromScale(46 / 770, 72 / 278),
@@ -58,30 +117,39 @@ return function()
 				ZIndex = 2,
 			},
 
-			create "ImageLabel" {
+			create "ImageLabel" { --healthbar
 				Image = "rbxassetid://90501692272226",
 				Size = UDim2.fromScale(510 / 770, 33.5 / 278),
 				Position = UDim2.fromScale(250 / 770, 158 / 278),
 				BackgroundTransparency = 1,
 				ZIndex = 2,
 			},
-			create "ImageLabel" {
-				Image = "rbxassetid://125573192752371",
-				Size = UDim2.fromScale(535 / 770, 29 / 278),
+			create "ImageLabel" { --border
+				Image = "rbxassetid://95850929541402",
+				Size = UDim2.fromScale(510 / 770, 33.5 / 278),
+				Position = UDim2.fromScale(250 / 770, 158 / 278),
+				BackgroundTransparency = 1,
+				ZIndex = 4,
+			},
+			create "ImageLabel" { --stambar
+				Image = "rbxassetid://107570538318662",
+				Size = UDim2.fromScale(532 / 770, 29 / 278),
 				Position = UDim2.fromScale(209 / 770, 207 / 278),
 				BackgroundTransparency = 1,
 				ZIndex = 2,
+				create "ImageLabel" { --border
+					Image = "rbxassetid://107595386067967",
+					Size = UDim2.fromScale(1, 1),
+					Position = UDim2.fromScale(0, 0),
+					BackgroundTransparency = 1,
+					ZIndex = 4,
+				},
 			},
 			streaks,
+			health,
+			stam,
+			healthChanged(health),
+			stamChanged(stam),
 		},
 	}
 end
---stam
---rbxassetid://125573192752371
---save
---rbxassetid://86837866908229
-
---health
---rbxassetid://90501692272226
---save
---rbxassetid://86837866908229

@@ -12,4 +12,5 @@ return {
 		enduranceCount = source(0),
 	},
 	InHealthUI = source(true),
+	Humanoid = source(nil),
 }
