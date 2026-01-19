@@ -1,6 +1,8 @@
 local Debris = game:GetService "Debris"
 local Players = game:GetService "Players"
 local ReplicatedStorage = game:GetService "ReplicatedStorage"
+local ServerScriptService = game:GetService "ServerScriptService"
+local States = ServerScriptService.Server.StateMachines.Baller.States
 local robloxstatemachine = require(ReplicatedStorage.Packages.robloxstatemachine)
 local PlayerIsAlive = require(ReplicatedStorage.Shared.PlayerIsAlive)
 local Match = script.Parent.Parent
@@ -34,12 +36,15 @@ function InMatch:OnEnter(data)
 		p.Character:PivotTo(getRandomPositionInPart(arena.PlayerRange))
 	end
 
-	--TODO: Summon the boss
-	local boss = Instance.new "Part"
-	boss.Position = arena.BossSpawn.WorldPosition
+	local boss = ReplicatedStorage.Shared.models.Baller:Clone()
 	boss.Parent = workspace
-	boss.Color = Color3.new(0.270588, 0.866667, 0.035294)
-	Debris:AddItem(boss, 10)
+	boss:PivotTo(arena:GetPivot() + Vector3.new(0, 50, 0))
+	boss.PrimaryPart:SetNetworkOwner(nil)
+	data.bossStateMachine = robloxstatemachine.new(
+		"Neutral",
+		robloxstatemachine:LoadDirectory(States),
+		{ baller = boss, players = eligiblePlayers }
+	)
 
 	data.players = eligiblePlayers
 	data.arena = arena
@@ -47,14 +52,26 @@ function InMatch:OnEnter(data)
 end
 
 function InMatch:OnHeartbeat(data)
-	data.players = allEligiblePlayers(data.players)
+	for i = #data.players, 1, -1 do
+		if not PlayerIsAlive(data.players[i]) then
+			--player removed
+			print "removed player"
+			table.remove(data.players, i)
+		end
+	end
 	if data.boss.Parent ~= workspace then
+		data.bossStateMachine:Destroy()
 		data.boss = nil
 	end
 end
 
 function InMatch:OnLeave(data)
-	data.arena:Destroy()
+	data.bossStateMachine:Destroy()
+	Debris:AddItem(data.boss, 0)
+	Debris:AddItem(data.arena, 0)
+	for _, player in data.players do
+		Debris:AddItem(player.Character, 0)
+	end
 end
 
 return InMatch
