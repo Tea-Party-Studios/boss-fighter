@@ -1,6 +1,8 @@
 local Players = game:GetService "Players"
 local ReplicatedStorage = game:GetService "ReplicatedStorage"
 local RunService = game:GetService "RunService"
+local ServerScriptService = game:GetService "ServerScriptService"
+local zap = require(ServerScriptService.Server.zap)
 local robloxstatemachine = require(ReplicatedStorage.Packages.robloxstatemachine)
 local Baller = script.Parent.Parent
 local State = robloxstatemachine.State
@@ -9,6 +11,7 @@ local LobbedAttack = State.new "LobbedAttack"
 LobbedAttack.Transitions = { require(Baller.Transitions.returnToNeutral) }
 
 function LobbedAttack:OnEnter(data)
+	--tell every client to prepare the attack
 	data.baller.MovementVelocity.PlaneVelocity = Vector2.zero
 
 	local target = data.players[1].Character :: Model
@@ -37,12 +40,15 @@ function LobbedAttack:OnEnter(data)
 	projectile.Position = bossPos
 	projectile.Material = Enum.Material.SmoothPlastic
 
-	local timeToTarget = 1
-	print(a, angle, tx, ty)
+	local timeToTarget = 2.3
 	local initialVelocity = math.sqrt((-d / a) / math.sin(2 * angle))
 	local velocity = initialVelocity * math.sin(angle) * Vector3.yAxis + initialVelocity * math.cos(angle) * direction
 	local pos = bossPos
-	print(timeToTarget)
+
+	local dmg = false
+
+	zap.LobbedProjectile.FireAll(workspace:GetServerTimeNow(), bossPos, velocity, tx / timeToTarget / 4)
+
 	local cn = RunService.Heartbeat:Connect(function(dt: number)
 		dt *= tx / timeToTarget / 4 --I believe this /4 was added because I assumed the gravity was 1? Idk but it works pretty well
 		local stepVelocity = velocity - Vector3.yAxis * dt
@@ -51,9 +57,21 @@ function LobbedAttack:OnEnter(data)
 		local nextPos = pos + stepDisplacement
 		pos = nextPos
 		projectile.CFrame = CFrame.new(pos)
+		if dmg then
+			return
+		end
+		for _, part in workspace:GetPartsInPart(projectile) do
+			if not Players:GetPlayerFromCharacter(part.Parent) then
+				return
+			end
+			print "hit lobbed!"
+			part.Parent.Humanoid:TakeDamage(10)
+			dmg = true
+			break
+		end
 	end)
 
-	projectile.Touched:Connect(function(part: BasePart)
+	--[[projectile.Touched:Connect(function(part: BasePart)
 		if part.Name ~= "HumanoidRootPart" then
 			return
 		end
@@ -62,7 +80,7 @@ function LobbedAttack:OnEnter(data)
 		end
 		print "hit lobbed!"
 		part.Parent.Humanoid:TakeDamage(10)
-	end)
+	end)]]
 
 	task.delay(timeToTarget + 2, function()
 		cn:Disconnect()

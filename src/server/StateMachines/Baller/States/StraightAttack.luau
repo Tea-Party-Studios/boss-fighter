@@ -1,6 +1,8 @@
 local Players = game:GetService "Players"
 local ReplicatedStorage = game:GetService "ReplicatedStorage"
 local RunService = game:GetService "RunService"
+local ServerScriptService = game:GetService "ServerScriptService"
+local zap = require(ServerScriptService.Server.zap)
 local robloxstatemachine = require(ReplicatedStorage.Packages.robloxstatemachine)
 local Baller = script.Parent.Parent
 local State = robloxstatemachine.State
@@ -14,41 +16,48 @@ function StraightAttack:OnEnter(data)
 	local target = data.players[1].Character :: Model
 	local bossPos: Vector3 = data.baller.Torso.Position
 
-	local angle = math.rad(math.random(40, 70))
-
 	local targetPos = target:GetPivot().Position
-	local projectile = Instance.new "Part"
-	projectile.Shape = Enum.PartType.Ball
-	projectile.Size = Vector3.one * 4
 
 	local direction = (targetPos - bossPos).Unit
-	projectile.CanCollide = false
-	projectile.Color = Color3.new(1, 0, 0)
-	projectile.Parent = workspace
-	projectile.Anchored = true
-	projectile.Position = bossPos
-	projectile.Material = Enum.Material.SmoothPlastic
 
 	local SPEED = 50
 	local velocity = direction * SPEED
 	local pos = bossPos
-	print "straightShot"
+
+	print(workspace:GetServerTimeNow())
+	zap.DisplayProjectile.FireAll(workspace:GetServerTimeNow(), bossPos, velocity)
+
+	local projectile = Instance.new "Part"
+	projectile.Shape = Enum.PartType.Ball
+	projectile.Size = Vector3.one * 4
+	projectile.CanCollide = false
+	projectile.Color = Color3.new(1, 0, 0)
+	projectile.Transparency = 0
+	projectile.Parent = workspace
+	projectile.Anchored = true
+	projectile.Position = pos
+	projectile.Material = Enum.Material.SmoothPlastic
+	local dmg = false
 	local cn = RunService.Heartbeat:Connect(function(dt: number)
 		local nextPos = pos + velocity * dt
 		pos = nextPos
 		projectile.CFrame = CFrame.new(pos, pos + velocity)
+		if dmg then
+			return
+		end
+		for _, part in workspace:GetPartsInPart(projectile) do
+			if not Players:GetPlayerFromCharacter(part.Parent) then
+				return
+			end
+			print "hit straight!"
+			part.Parent.Humanoid:TakeDamage(10)
+			dmg = true
+			break
+		end
 	end)
 
-	projectile.Touched:Connect(function(part: BasePart)
-		if part.Name ~= "HumanoidRootPart" then
-			return
-		end
-		if not Players:GetPlayerFromCharacter(part.Parent) then
-			return
-		end
-		print "hit straight!"
-		part.Parent.Humanoid:TakeDamage(10)
-	end)
+	--TODO: replace touched with parts in part
+	--projectile.Touched:Connect(function(part: BasePart) end)
 
 	task.delay(4, function()
 		cn:Disconnect()

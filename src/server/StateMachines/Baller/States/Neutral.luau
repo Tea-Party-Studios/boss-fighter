@@ -29,8 +29,7 @@ function Neutral:OnHeartbeat(data, dt)
 	end
 	if data.timer > 1 then
 		data.timer -= 1
-		--figure out what the boss will do (still TODO)
-		if math.random() < 0.7 then
+		if math.random() < 1 then
 			data.nextState = "LobbedAttack"
 		else
 			data.nextState = "StraightAttack"

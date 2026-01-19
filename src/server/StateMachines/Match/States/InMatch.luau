@@ -36,7 +36,6 @@ function InMatch:OnEnter(data)
 		p.Character:PivotTo(getRandomPositionInPart(arena.PlayerRange))
 	end
 
-	--TODO: Summon the boss
 	local boss = ReplicatedStorage.Shared.models.Baller:Clone()
 	boss.Parent = workspace
 	boss:PivotTo(arena:GetPivot() + Vector3.new(0, 50, 0))
