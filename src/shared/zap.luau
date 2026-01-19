@@ -144,7 +144,13 @@ if not RunService:IsRunning() then
 		PlayerParry = table.freeze({
 			Fire = noop
 		}),
+		LobbedProjectile = table.freeze({
+			SetCallback = noop
+		}),
 		InIntermission = table.freeze({
+			SetCallback = noop
+		}),
+		DisplayProjectile = table.freeze({
 			SetCallback = noop
 		}),
 	}) :: Events
@@ -171,10 +177,12 @@ end
 
 RunService.Heartbeat:Connect(SendEvents)
 
-local reliable_events = table.create(2)
-local reliable_event_queue: { [number]: { any } } = table.create(2)
+local reliable_events = table.create(4)
+local reliable_event_queue: { [number]: { any } } = table.create(4)
 reliable_event_queue[0] = {}
+reliable_event_queue[3] = {}
 reliable_event_queue[1] = {}
+reliable_event_queue[2] = {}
 reliable.OnClientEvent:Connect(function(buff, inst)
 	incoming_buff = buff
 	incoming_inst = inst
@@ -208,6 +216,20 @@ reliable.OnClientEvent:Connect(function(buff, inst)
 					warn(`[ZAP] {#reliable_event_queue[0]} events in queue for PlayerSync. Did you forget to attach a listener?`)
 				end
 			end
+		elseif id == 3 then -- LobbedProjectile
+			local value, value2, value3, value4
+			value = buffer.readf64(incoming_buff, read(8))
+			value2 = Vector3.new(buffer.readf32(incoming_buff, read(4)), buffer.readf32(incoming_buff, read(4)), buffer.readf32(incoming_buff, read(4)))
+			value3 = Vector3.new(buffer.readf32(incoming_buff, read(4)), buffer.readf32(incoming_buff, read(4)), buffer.readf32(incoming_buff, read(4)))
+			value4 = buffer.readf64(incoming_buff, read(8))
+			if reliable_events[3] then
+				task.spawn(reliable_events[3], value, value2, value3, value4)
+			else
+				table.insert(reliable_event_queue[3], { value, value2, value3, value4 })
+				if #reliable_event_queue[3] > 64 then
+					warn(`[ZAP] {#reliable_event_queue[3]} events in queue for LobbedProjectile. Did you forget to attach a listener?`)
+				end
+			end
 		elseif id == 1 then -- InIntermission
 			local value
 			local bool_2 = buffer.readu8(incoming_buff, read(1))
@@ -218,6 +240,19 @@ reliable.OnClientEvent:Connect(function(buff, inst)
 				table.insert(reliable_event_queue[1], value)
 				if #reliable_event_queue[1] > 64 then
 					warn(`[ZAP] {#reliable_event_queue[1]} events in queue for InIntermission. Did you forget to attach a listener?`)
+				end
+			end
+		elseif id == 2 then -- DisplayProjectile
+			local value, value2, value3
+			value = buffer.readf64(incoming_buff, read(8))
+			value2 = Vector3.new(buffer.readf32(incoming_buff, read(4)), buffer.readf32(incoming_buff, read(4)), buffer.readf32(incoming_buff, read(4)))
+			value3 = Vector3.new(buffer.readf32(incoming_buff, read(4)), buffer.readf32(incoming_buff, read(4)), buffer.readf32(incoming_buff, read(4)))
+			if reliable_events[2] then
+				task.spawn(reliable_events[2], value, value2, value3)
+			else
+				table.insert(reliable_event_queue[2], { value, value2, value3 })
+				if #reliable_event_queue[2] > 64 then
+					warn(`[ZAP] {#reliable_event_queue[2]} events in queue for DisplayProjectile. Did you forget to attach a listener?`)
 				end
 			end
 		else
@@ -277,6 +312,18 @@ local returns = {
 			buffer.writeu8(outgoing_buff, outgoing_apos, 1)
 		end,
 	},
+	LobbedProjectile = {
+		SetCallback = function(Callback: (sentTime: (number), spawn: (Vector3), velocity: (Vector3), dtCoefficient: (number)) -> ()): () -> ()
+			reliable_events[3] = Callback
+			for _, value in reliable_event_queue[3] do
+				task.spawn(Callback, unpack(value))
+			end
+			reliable_event_queue[3] = {}
+			return function()
+				reliable_events[3] = nil
+			end
+		end,
+	},
 	InIntermission = {
 		SetCallback = function(Callback: (InIntermission: (boolean)) -> ()): () -> ()
 			reliable_events[1] = Callback
@@ -286,6 +333,18 @@ local returns = {
 			reliable_event_queue[1] = {}
 			return function()
 				reliable_events[1] = nil
+			end
+		end,
+	},
+	DisplayProjectile = {
+		SetCallback = function(Callback: (sentTime: (number), spawn: (Vector3), velocity: (Vector3)) -> ()): () -> ()
+			reliable_events[2] = Callback
+			for _, value in reliable_event_queue[2] do
+				task.spawn(Callback, unpack(value))
+			end
+			reliable_event_queue[2] = {}
+			return function()
+				reliable_events[2] = nil
 			end
 		end,
 	},

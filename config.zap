@@ -44,3 +44,17 @@ event UpdateStats = {
 		endurance : u8,
 	})
 }
+
+event DisplayProjectile = {
+	from : Server,
+	type : Reliable,
+	call : SingleAsync,
+	data : (sentTime : f64,spawn : Vector3, velocity : Vector3)
+}
+
+event LobbedProjectile = {
+	from : Server,
+	type : Reliable,
+	call : SingleAsync,
+	data : (sentTime : f64,spawn : Vector3,velocity : Vector3,dtCoefficient : f64)
+}

@@ -150,7 +150,21 @@ if not RunService:IsRunning() then
 		PlayerParry = table.freeze({
 			SetCallback = noop
 		}),
+		LobbedProjectile = table.freeze({
+			Fire = noop,
+			FireAll = noop,
+			FireExcept = noop,
+			FireList = noop,
+			FireSet = noop
+		}),
 		InIntermission = table.freeze({
+			Fire = noop,
+			FireAll = noop,
+			FireExcept = noop,
+			FireList = noop,
+			FireSet = noop
+		}),
+		DisplayProjectile = table.freeze({
 			Fire = noop,
 			FireAll = noop,
 			FireExcept = noop,
@@ -454,6 +468,148 @@ local returns = {
 			end
 		end,
 	},
+	LobbedProjectile = {
+		Fire = function(Player: Player, sentTime: (number), spawn: (Vector3), velocity: (Vector3), dtCoefficient: (number))
+			load_player(Player)
+			alloc(1)
+			buffer.writeu8(outgoing_buff, outgoing_apos, 3)
+			alloc(8)
+			buffer.writef64(outgoing_buff, outgoing_apos, sentTime)
+			alloc(4)
+			buffer.writef32(outgoing_buff, outgoing_apos, spawn.X)
+			alloc(4)
+			buffer.writef32(outgoing_buff, outgoing_apos, spawn.Y)
+			alloc(4)
+			buffer.writef32(outgoing_buff, outgoing_apos, spawn.Z)
+			alloc(4)
+			buffer.writef32(outgoing_buff, outgoing_apos, velocity.X)
+			alloc(4)
+			buffer.writef32(outgoing_buff, outgoing_apos, velocity.Y)
+			alloc(4)
+			buffer.writef32(outgoing_buff, outgoing_apos, velocity.Z)
+			alloc(8)
+			buffer.writef64(outgoing_buff, outgoing_apos, dtCoefficient)
+			player_map[Player] = save()
+		end,
+		FireAll = function(sentTime: (number), spawn: (Vector3), velocity: (Vector3), dtCoefficient: (number))
+			load_empty()
+			alloc(1)
+			buffer.writeu8(outgoing_buff, outgoing_apos, 3)
+			alloc(8)
+			buffer.writef64(outgoing_buff, outgoing_apos, sentTime)
+			alloc(4)
+			buffer.writef32(outgoing_buff, outgoing_apos, spawn.X)
+			alloc(4)
+			buffer.writef32(outgoing_buff, outgoing_apos, spawn.Y)
+			alloc(4)
+			buffer.writef32(outgoing_buff, outgoing_apos, spawn.Z)
+			alloc(4)
+			buffer.writef32(outgoing_buff, outgoing_apos, velocity.X)
+			alloc(4)
+			buffer.writef32(outgoing_buff, outgoing_apos, velocity.Y)
+			alloc(4)
+			buffer.writef32(outgoing_buff, outgoing_apos, velocity.Z)
+			alloc(8)
+			buffer.writef64(outgoing_buff, outgoing_apos, dtCoefficient)
+			local buff, used, inst = outgoing_buff, outgoing_used, outgoing_inst
+			for _, player in Players:GetPlayers() do
+				load_player(player)
+				alloc(used)
+				buffer.copy(outgoing_buff, outgoing_apos, buff, 0, used)
+				table.move(inst, 1, #inst, #outgoing_inst + 1, outgoing_inst)
+				player_map[player] = save()
+			end
+		end,
+		FireExcept = function(Except: Player, sentTime: (number), spawn: (Vector3), velocity: (Vector3), dtCoefficient: (number))
+			load_empty()
+			alloc(1)
+			buffer.writeu8(outgoing_buff, outgoing_apos, 3)
+			alloc(8)
+			buffer.writef64(outgoing_buff, outgoing_apos, sentTime)
+			alloc(4)
+			buffer.writef32(outgoing_buff, outgoing_apos, spawn.X)
+			alloc(4)
+			buffer.writef32(outgoing_buff, outgoing_apos, spawn.Y)
+			alloc(4)
+			buffer.writef32(outgoing_buff, outgoing_apos, spawn.Z)
+			alloc(4)
+			buffer.writef32(outgoing_buff, outgoing_apos, velocity.X)
+			alloc(4)
+			buffer.writef32(outgoing_buff, outgoing_apos, velocity.Y)
+			alloc(4)
+			buffer.writef32(outgoing_buff, outgoing_apos, velocity.Z)
+			alloc(8)
+			buffer.writef64(outgoing_buff, outgoing_apos, dtCoefficient)
+			local buff, used, inst = outgoing_buff, outgoing_used, outgoing_inst
+			for _, player in Players:GetPlayers() do
+				if player ~= Except then
+					load_player(player)
+					alloc(used)
+					buffer.copy(outgoing_buff, outgoing_apos, buff, 0, used)
+					table.move(inst, 1, #inst, #outgoing_inst + 1, outgoing_inst)
+					player_map[player] = save()
+				end
+			end
+		end,
+		FireList = function(List: { [unknown]: Player }, sentTime: (number), spawn: (Vector3), velocity: (Vector3), dtCoefficient: (number))
+			load_empty()
+			alloc(1)
+			buffer.writeu8(outgoing_buff, outgoing_apos, 3)
+			alloc(8)
+			buffer.writef64(outgoing_buff, outgoing_apos, sentTime)
+			alloc(4)
+			buffer.writef32(outgoing_buff, outgoing_apos, spawn.X)
+			alloc(4)
+			buffer.writef32(outgoing_buff, outgoing_apos, spawn.Y)
+			alloc(4)
+			buffer.writef32(outgoing_buff, outgoing_apos, spawn.Z)
+			alloc(4)
+			buffer.writef32(outgoing_buff, outgoing_apos, velocity.X)
+			alloc(4)
+			buffer.writef32(outgoing_buff, outgoing_apos, velocity.Y)
+			alloc(4)
+			buffer.writef32(outgoing_buff, outgoing_apos, velocity.Z)
+			alloc(8)
+			buffer.writef64(outgoing_buff, outgoing_apos, dtCoefficient)
+			local buff, used, inst = outgoing_buff, outgoing_used, outgoing_inst
+			for _, player in List do
+				load_player(player)
+				alloc(used)
+				buffer.copy(outgoing_buff, outgoing_apos, buff, 0, used)
+				table.move(inst, 1, #inst, #outgoing_inst + 1, outgoing_inst)
+				player_map[player] = save()
+			end
+		end,
+		FireSet = function(Set: { [Player]: any }, sentTime: (number), spawn: (Vector3), velocity: (Vector3), dtCoefficient: (number))
+			load_empty()
+			alloc(1)
+			buffer.writeu8(outgoing_buff, outgoing_apos, 3)
+			alloc(8)
+			buffer.writef64(outgoing_buff, outgoing_apos, sentTime)
+			alloc(4)
+			buffer.writef32(outgoing_buff, outgoing_apos, spawn.X)
+			alloc(4)
+			buffer.writef32(outgoing_buff, outgoing_apos, spawn.Y)
+			alloc(4)
+			buffer.writef32(outgoing_buff, outgoing_apos, spawn.Z)
+			alloc(4)
+			buffer.writef32(outgoing_buff, outgoing_apos, velocity.X)
+			alloc(4)
+			buffer.writef32(outgoing_buff, outgoing_apos, velocity.Y)
+			alloc(4)
+			buffer.writef32(outgoing_buff, outgoing_apos, velocity.Z)
+			alloc(8)
+			buffer.writef64(outgoing_buff, outgoing_apos, dtCoefficient)
+			local buff, used, inst = outgoing_buff, outgoing_used, outgoing_inst
+			for player in Set do
+				load_player(player)
+				alloc(used)
+				buffer.copy(outgoing_buff, outgoing_apos, buff, 0, used)
+				table.move(inst, 1, #inst, #outgoing_inst + 1, outgoing_inst)
+				player_map[player] = save()
+			end
+		end,
+	},
 	InIntermission = {
 		Fire = function(Player: Player, InIntermission: (boolean))
 			load_player(Player)
@@ -536,6 +692,138 @@ local returns = {
 				bool_10 = bit32.bor(bool_10, 0b0000000000000001)
 			end
 			buffer.writeu8(outgoing_buff, bool_10_pos_1, bool_10)
+			local buff, used, inst = outgoing_buff, outgoing_used, outgoing_inst
+			for player in Set do
+				load_player(player)
+				alloc(used)
+				buffer.copy(outgoing_buff, outgoing_apos, buff, 0, used)
+				table.move(inst, 1, #inst, #outgoing_inst + 1, outgoing_inst)
+				player_map[player] = save()
+			end
+		end,
+	},
+	DisplayProjectile = {
+		Fire = function(Player: Player, sentTime: (number), spawn: (Vector3), velocity: (Vector3))
+			load_player(Player)
+			alloc(1)
+			buffer.writeu8(outgoing_buff, outgoing_apos, 2)
+			alloc(8)
+			buffer.writef64(outgoing_buff, outgoing_apos, sentTime)
+			alloc(4)
+			buffer.writef32(outgoing_buff, outgoing_apos, spawn.X)
+			alloc(4)
+			buffer.writef32(outgoing_buff, outgoing_apos, spawn.Y)
+			alloc(4)
+			buffer.writef32(outgoing_buff, outgoing_apos, spawn.Z)
+			alloc(4)
+			buffer.writef32(outgoing_buff, outgoing_apos, velocity.X)
+			alloc(4)
+			buffer.writef32(outgoing_buff, outgoing_apos, velocity.Y)
+			alloc(4)
+			buffer.writef32(outgoing_buff, outgoing_apos, velocity.Z)
+			player_map[Player] = save()
+		end,
+		FireAll = function(sentTime: (number), spawn: (Vector3), velocity: (Vector3))
+			load_empty()
+			alloc(1)
+			buffer.writeu8(outgoing_buff, outgoing_apos, 2)
+			alloc(8)
+			buffer.writef64(outgoing_buff, outgoing_apos, sentTime)
+			alloc(4)
+			buffer.writef32(outgoing_buff, outgoing_apos, spawn.X)
+			alloc(4)
+			buffer.writef32(outgoing_buff, outgoing_apos, spawn.Y)
+			alloc(4)
+			buffer.writef32(outgoing_buff, outgoing_apos, spawn.Z)
+			alloc(4)
+			buffer.writef32(outgoing_buff, outgoing_apos, velocity.X)
+			alloc(4)
+			buffer.writef32(outgoing_buff, outgoing_apos, velocity.Y)
+			alloc(4)
+			buffer.writef32(outgoing_buff, outgoing_apos, velocity.Z)
+			local buff, used, inst = outgoing_buff, outgoing_used, outgoing_inst
+			for _, player in Players:GetPlayers() do
+				load_player(player)
+				alloc(used)
+				buffer.copy(outgoing_buff, outgoing_apos, buff, 0, used)
+				table.move(inst, 1, #inst, #outgoing_inst + 1, outgoing_inst)
+				player_map[player] = save()
+			end
+		end,
+		FireExcept = function(Except: Player, sentTime: (number), spawn: (Vector3), velocity: (Vector3))
+			load_empty()
+			alloc(1)
+			buffer.writeu8(outgoing_buff, outgoing_apos, 2)
+			alloc(8)
+			buffer.writef64(outgoing_buff, outgoing_apos, sentTime)
+			alloc(4)
+			buffer.writef32(outgoing_buff, outgoing_apos, spawn.X)
+			alloc(4)
+			buffer.writef32(outgoing_buff, outgoing_apos, spawn.Y)
+			alloc(4)
+			buffer.writef32(outgoing_buff, outgoing_apos, spawn.Z)
+			alloc(4)
+			buffer.writef32(outgoing_buff, outgoing_apos, velocity.X)
+			alloc(4)
+			buffer.writef32(outgoing_buff, outgoing_apos, velocity.Y)
+			alloc(4)
+			buffer.writef32(outgoing_buff, outgoing_apos, velocity.Z)
+			local buff, used, inst = outgoing_buff, outgoing_used, outgoing_inst
+			for _, player in Players:GetPlayers() do
+				if player ~= Except then
+					load_player(player)
+					alloc(used)
+					buffer.copy(outgoing_buff, outgoing_apos, buff, 0, used)
+					table.move(inst, 1, #inst, #outgoing_inst + 1, outgoing_inst)
+					player_map[player] = save()
+				end
+			end
+		end,
+		FireList = function(List: { [unknown]: Player }, sentTime: (number), spawn: (Vector3), velocity: (Vector3))
+			load_empty()
+			alloc(1)
+			buffer.writeu8(outgoing_buff, outgoing_apos, 2)
+			alloc(8)
+			buffer.writef64(outgoing_buff, outgoing_apos, sentTime)
+			alloc(4)
+			buffer.writef32(outgoing_buff, outgoing_apos, spawn.X)
+			alloc(4)
+			buffer.writef32(outgoing_buff, outgoing_apos, spawn.Y)
+			alloc(4)
+			buffer.writef32(outgoing_buff, outgoing_apos, spawn.Z)
+			alloc(4)
+			buffer.writef32(outgoing_buff, outgoing_apos, velocity.X)
+			alloc(4)
+			buffer.writef32(outgoing_buff, outgoing_apos, velocity.Y)
+			alloc(4)
+			buffer.writef32(outgoing_buff, outgoing_apos, velocity.Z)
+			local buff, used, inst = outgoing_buff, outgoing_used, outgoing_inst
+			for _, player in List do
+				load_player(player)
+				alloc(used)
+				buffer.copy(outgoing_buff, outgoing_apos, buff, 0, used)
+				table.move(inst, 1, #inst, #outgoing_inst + 1, outgoing_inst)
+				player_map[player] = save()
+			end
+		end,
+		FireSet = function(Set: { [Player]: any }, sentTime: (number), spawn: (Vector3), velocity: (Vector3))
+			load_empty()
+			alloc(1)
+			buffer.writeu8(outgoing_buff, outgoing_apos, 2)
+			alloc(8)
+			buffer.writef64(outgoing_buff, outgoing_apos, sentTime)
+			alloc(4)
+			buffer.writef32(outgoing_buff, outgoing_apos, spawn.X)
+			alloc(4)
+			buffer.writef32(outgoing_buff, outgoing_apos, spawn.Y)
+			alloc(4)
+			buffer.writef32(outgoing_buff, outgoing_apos, spawn.Z)
+			alloc(4)
+			buffer.writef32(outgoing_buff, outgoing_apos, velocity.X)
+			alloc(4)
+			buffer.writef32(outgoing_buff, outgoing_apos, velocity.Y)
+			alloc(4)
+			buffer.writef32(outgoing_buff, outgoing_apos, velocity.Z)
 			local buff, used, inst = outgoing_buff, outgoing_used, outgoing_inst
 			for player in Set do
 				load_player(player)
