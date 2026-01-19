@@ -29,7 +29,7 @@ function Neutral:OnHeartbeat(data, dt)
 	end
 	if data.timer > 1 then
 		data.timer -= 1
-		if math.random() < 1 then
+		if math.random() < 0.5 then
 			data.nextState = "LobbedAttack"
 		else
 			data.nextState = "StraightAttack"
