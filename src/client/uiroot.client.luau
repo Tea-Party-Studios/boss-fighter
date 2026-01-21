@@ -14,7 +14,9 @@ mount(function()
 	return create "ScreenGui" {
 		show(vide_sources.InStatMenu, StatMenu),
 		show(vide_sources.InIntermission, Intermission),
-		show(vide_sources.InHealthUI, HealthUI),
+		show(vide_sources.Humanoid, function()
+			return HealthUI(vide_sources.Humanoid)
+		end),
 		IgnoreGuiInset = true,
 	}
 end, Players.LocalPlayer.PlayerGui)
