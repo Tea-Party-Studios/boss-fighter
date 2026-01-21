@@ -7,6 +7,12 @@
             },
             "MaxStamina": {
                 "Float64": 100
+            },
+            "HealthRegen": {
+                "Float64": 1
+            },
+            "StaminaRegen": {
+                "Float64": 10
             }
         }
     }
