@@ -187,6 +187,13 @@ function ESS.Entity.RegisterEntity(humanoid: Humanoid): Entity
 		end)
 	)
 
+	table.insert(
+		self._connections,
+		self._humanoid.Destroying:Connect(function()
+			self:DeregisterEntity()
+		end)
+	)
+
 	return self
 end
 
