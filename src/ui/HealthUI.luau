@@ -1,14 +1,9 @@
 local ReplicatedStorage = game:GetService "ReplicatedStorage"
 local TweenService = game:GetService "TweenService"
 local vide = require(ReplicatedStorage.Packages.vide)
-local vide_sources = require(ReplicatedStorage.Shared.vide_sources)
 local create = vide.create
 local action = vide.action
 local cleanup = vide.cleanup
-
-repeat
-	task.wait()
-until vide_sources.Humanoid() ~= nil
 
 local maxHealth = 100
 local maxStam = 100
@@ -25,27 +20,28 @@ function resizeCustomLoadingBar(sizeRatio, clipping, top)
 	top.Size = UDim2.new((sizeRatio > 0 and 1 / sizeRatio) or 0, top.Size.X.Offset, top.Size.Y.Scale, top.Size.Y.Offset)
 end
 
-local function healthChanged(bar)
+local function healthChanged(bar, humanoidSource: () -> Humanoid)
 	return action(function()
-		local connection = vide_sources.Humanoid().HealthChanged:Connect(function(newHealth)
+		local connection = humanoidSource().HealthChanged:Connect(function(newHealth)
 			resizeCustomLoadingBar((newHealth / maxHealth), bar.Frame, bar.Frame.ImageLabel)
 		end)
 		cleanup(connection)
 	end)
 end
 
-local function stamChanged(bar)
+local function stamChanged(bar, humanoidSource: () -> Humanoid)
 	return action(function()
-		local connection = vide_sources.Humanoid():GetAttributeChangedSignal("Stamina"):Connect(function()
-			local newStam = vide_sources.Humanoid():GetAttribute "Stamina"
-			print(newStam)
+		local connection = humanoidSource():GetAttributeChangedSignal("Stamina"):Connect(function()
+			local newStam = humanoidSource():GetAttribute "Stamina"
 			resizeCustomLoadingBar((newStam / maxStam), bar.Frame, bar.Frame.ImageLabel)
 		end)
 		cleanup(connection)
 	end)
 end
 
-return function()
+return function(props: {
+	humanoidSource: () -> Humanoid,
+})
 	local health = create "ImageLabel" { --health
 		Image = "rbxassetid://136391077137942",
 		Size = UDim2.fromScale(486 / 770, 22 / 278),
@@ -148,8 +144,8 @@ return function()
 			streaks,
 			health,
 			stam,
-			healthChanged(health),
-			stamChanged(stam),
+			healthChanged(health, props.humanoidSource),
+			stamChanged(stam, props.humanoidSource),
 		},
 	}
 end

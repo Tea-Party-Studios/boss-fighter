@@ -2,9 +2,7 @@ local ReplicatedStorage = game:GetService "ReplicatedStorage"
 local TweenService = game:GetService "TweenService"
 local vide = require(ReplicatedStorage.Packages.vide)
 local vide_sources = require(ReplicatedStorage.Shared.vide_sources)
-local zap = require(ReplicatedStorage.Shared.zap)
 local create = vide.create
-local source = vide.source
 local derive = vide.derive
 
 local function tweenGradient(object: UIGradient)
@@ -121,7 +119,9 @@ local bar = function(props: {
 	}
 end
 
-return function()
+return function(props: {
+	statChange: () -> ()
+})
 	local energyCount = vide_sources.Stats.energyCount
 	local strengthCount = vide_sources.Stats.strengthCount
 	local enduranceCount = vide_sources.Stats.enduranceCount
@@ -162,7 +162,7 @@ return function()
 			BackgroundTransparency = 1,
 			Activated = function()
 				vide_sources.InStatMenu(false)
-				zap.UpdateStats.Fire { endurance = enduranceCount(), strength = strengthCount(), energy = energyCount() }
+				props.statChange({ endurance = enduranceCount(), strength = strengthCount(), energy = energyCount() })
 			end,
 			create "TextLabel" {
 				Text = "Save",
