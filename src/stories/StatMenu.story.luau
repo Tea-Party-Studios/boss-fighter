@@ -17,7 +17,9 @@ local story = {
 		return vide.create "Frame" {
 			Size = props.controls.DeviceCanvas,
 			BackgroundTransparency = 0.2,
-			StatMenu(),
+			StatMenu {
+				statChange = print,
+			},
 		}
 	end,
 }

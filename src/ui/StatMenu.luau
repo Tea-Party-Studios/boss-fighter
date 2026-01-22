@@ -162,8 +162,6 @@ return function(props: {
 			BackgroundTransparency = 1,
 			Activated = function()
 				vide_sources.InStatMenu(false)
-				--TODO: Pass this function as a prop to StatMenu!!!
-				--for the story just pass a print function instead
 				props.statChange({ endurance = enduranceCount(), strength = strengthCount(), energy = energyCount() })
 			end,
 			create "TextLabel" {
