@@ -5,10 +5,6 @@ local create = vide.create
 local action = vide.action
 local cleanup = vide.cleanup
 
---repeat
---	task.wait()
---until vide_sources.Humanoid() ~= nil
-
 local maxHealth = 100
 local maxStam = 100
 
@@ -37,14 +33,15 @@ local function stamChanged(bar, humanoidSource: () -> Humanoid)
 	return action(function()
 		local connection = humanoidSource():GetAttributeChangedSignal("Stamina"):Connect(function()
 			local newStam = humanoidSource():GetAttribute "Stamina"
-			print(newStam)
 			resizeCustomLoadingBar((newStam / maxStam), bar.Frame, bar.Frame.ImageLabel)
 		end)
 		cleanup(connection)
 	end)
 end
 
-return function(humanoidSource: () -> Humanoid)
+return function(props: {
+	humanoidSource: () -> Humanoid,
+})
 	local health = create "ImageLabel" { --health
 		Image = "rbxassetid://136391077137942",
 		Size = UDim2.fromScale(486 / 770, 22 / 278),
@@ -147,8 +144,8 @@ return function(humanoidSource: () -> Humanoid)
 			streaks,
 			health,
 			stam,
-			healthChanged(health, humanoidSource),
-			stamChanged(stam, humanoidSource),
+			healthChanged(health, props.humanoidSource),
+			stamChanged(stam, props.humanoidSource),
 		},
 	}
 end

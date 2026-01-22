@@ -119,7 +119,9 @@ local bar = function(props: {
 	}
 end
 
-return function()
+return function(props: {
+	statChange: () -> ()
+})
 	local energyCount = vide_sources.Stats.energyCount
 	local strengthCount = vide_sources.Stats.strengthCount
 	local enduranceCount = vide_sources.Stats.enduranceCount
@@ -162,7 +164,7 @@ return function()
 				vide_sources.InStatMenu(false)
 				--TODO: Pass this function as a prop to StatMenu!!!
 				--for the story just pass a print function instead
-				--zap.UpdateStats.Fire { endurance = enduranceCount(), strength = strengthCount(), energy = energyCount() }
+				props.statChange({ endurance = enduranceCount(), strength = strengthCount(), energy = energyCount() })
 			end,
 			create "TextLabel" {
 				Text = "Save",
