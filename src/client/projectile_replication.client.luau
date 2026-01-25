@@ -68,7 +68,6 @@ local function evaluate_lobbed_position(
 				p.Color = Color3.new(0.788235, 0.839216, 0.047059)
 				Debris:AddItem(p, 0)
 				stepVelocity += (targetPos - hit_position) * dt
-				--stepVelocity += (hit_position - targetPos) * dt
 			end
 		end
 	end

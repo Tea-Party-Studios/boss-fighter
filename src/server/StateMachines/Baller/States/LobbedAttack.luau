@@ -53,7 +53,6 @@ function LobbedAttack:OnEnter(data)
 		dt *= tx / timeToTarget / 4 --I believe this /4 was added because I assumed the gravity was 1? Idk but it works pretty well
 		local stepVelocity = velocity - Vector3.yAxis * dt
 		local stepDisplacement = (velocity + stepVelocity) / 2 * dt
-		velocity = stepVelocity
 		local nextPos = pos + stepDisplacement
 		pos = nextPos
 
@@ -66,20 +65,13 @@ function LobbedAttack:OnEnter(data)
 				if root >= 0 then
 					local time = velocity.Y + math.sqrt(root)
 					local hit_position = nextPos * Vector3.new(1, 0, 1)
-						+ velocity * Vector3.new(1, 0, 1) * time
+						+ stepVelocity * Vector3.new(1, 0, 1) * time
 						+ targetPos.Y * Vector3.yAxis
-					--debug place a part there
-					--[[ local p = Instance.new("Part", workspace)
-				p.CanCollide = false
-				p.Size = 0.2 * Vector3.one
-				p.Position = hit_position
-				p.Anchored = true
-				p.Color = Color3.new(0.788235, 0.839216, 0.047059) ]]
-					velocity += (targetPos - hit_position) * dt
-					--stepVelocity += (hit_position - targetPos) * dt
+					stepVelocity += (targetPos - hit_position) * dt
 				end
 			end
 		end
+		velocity = stepVelocity
 
 		projectile.CFrame = CFrame.new(pos)
 		if dmg then
