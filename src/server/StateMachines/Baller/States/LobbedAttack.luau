@@ -28,17 +28,8 @@ function LobbedAttack:OnEnter(data)
 	if a > 0 then
 		a = -1
 	end
-	local projectile = Instance.new "Part"
-	projectile.Shape = Enum.PartType.Ball
-	projectile.Size = Vector3.one * 4
 
 	local direction = ((targetPos - bossPos) * Vector3.new(1, 0, 1)).Unit
-	projectile.CanCollide = false
-	projectile.Color = Color3.new(1, 0, 0)
-	projectile.Parent = workspace
-	projectile.Anchored = true
-	projectile.Position = bossPos
-	projectile.Material = Enum.Material.SmoothPlastic
 
 	local timeToTarget = tx / 50
 	local initialVelocity = math.sqrt((-d / a) / math.sin(2 * angle))
@@ -72,12 +63,10 @@ function LobbedAttack:OnEnter(data)
 			end
 		end
 		velocity = stepVelocity
-
-		projectile.CFrame = CFrame.new(pos)
 		if dmg then
 			return
 		end
-		for _, part in workspace:GetPartsInPart(projectile) do
+		for _, part in workspace:GetPartBoundsInRadius(pos, 2) do
 			if not Players:GetPlayerFromCharacter(part.Parent) then
 				continue
 			end
@@ -101,7 +90,6 @@ function LobbedAttack:OnEnter(data)
 
 	task.delay(timeToTarget + 2, function()
 		cn:Disconnect()
-		projectile:Destroy()
 	end)
 	task.delay(4, function()
 		data.endState = true
