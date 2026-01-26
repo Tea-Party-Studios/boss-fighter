@@ -40,7 +40,7 @@ function LobbedAttack:OnEnter(data)
 	projectile.Position = bossPos
 	projectile.Material = Enum.Material.SmoothPlastic
 
-	local timeToTarget = 2.3
+	local timeToTarget = tx / 50
 	local initialVelocity = math.sqrt((-d / a) / math.sin(2 * angle))
 	local velocity = initialVelocity * math.sin(angle) * Vector3.yAxis + initialVelocity * math.cos(angle) * direction
 	local pos = bossPos
@@ -79,9 +79,9 @@ function LobbedAttack:OnEnter(data)
 		end
 		for _, part in workspace:GetPartsInPart(projectile) do
 			if not Players:GetPlayerFromCharacter(part.Parent) then
-				return
+				continue
 			end
-			print "hit lobbed!"
+			print "hit lobbed server!"
 			part.Parent.Humanoid:TakeDamage(10)
 			dmg = true
 			break
