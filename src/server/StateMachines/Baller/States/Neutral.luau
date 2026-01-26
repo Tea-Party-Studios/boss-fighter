@@ -4,7 +4,11 @@ local Baller = script.Parent.Parent
 local State = robloxstatemachine.State
 
 local Neutral = State.new "Neutral"
-Neutral.Transitions = { require(Baller.Transitions.beginLobbedAttack), require(Baller.Transitions.beginStraightAttack) }
+Neutral.Transitions = {
+	require(Baller.Transitions.beginLobbedAttack),
+	require(Baller.Transitions.beginStraightAttack),
+	require(Baller.Transitions.beginSpikeAttack),
+}
 
 function Neutral:OnEnter(data)
 	data.timer = 0
@@ -30,7 +34,7 @@ function Neutral:OnHeartbeat(data, dt)
 	if data.timer > 1 then
 		data.timer -= 1
 		if math.random() < 1 then
-			data.nextState = "LobbedAttack"
+			data.nextState = "SpikeAttack"
 		else
 			data.nextState = "StraightAttack"
 		end

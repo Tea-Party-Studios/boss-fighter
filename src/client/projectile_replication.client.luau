@@ -18,7 +18,7 @@ zap.DisplayProjectile.SetCallback(function(sentTime: number, spawn: Vector3, vel
 	projectile.Shape = Enum.PartType.Ball
 	projectile.Size = Vector3.one * 4
 	projectile.CanCollide = false
-	projectile.Color = Color3.new(1, 0, 0)
+	projectile.Color = Color3.new(0, 0.066667, 1)
 	projectile.Parent = workspace
 	projectile.Anchored = true
 	--print(velocity)
