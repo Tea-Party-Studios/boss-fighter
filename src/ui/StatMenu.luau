@@ -4,12 +4,24 @@ local vide = require(ReplicatedStorage.Packages.vide)
 local vide_sources = require(ReplicatedStorage.Shared.vide_sources)
 local create = vide.create
 local derive = vide.derive
+local show = vide.show
+local source = vide.source
 
-local function tweenGradient(object: UIGradient)
-	object.Offset = Vector2.new(-1, 0)
-	local gradientInfo = TweenInfo.new(1.5, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut, -1)
-	local tween = TweenService:Create(object, gradientInfo, { Offset = Vector2.new(1, 0) })
-	tween:Play()
+
+
+
+local function tweenGradient(object: UIGradient,tweenType)
+	if tweenType == "offset" then 
+		object.Offset = Vector2.new(-1, 0)
+		local gradientInfo = TweenInfo.new(1.5, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut, -1)
+		local tween = TweenService:Create(object, gradientInfo, { Offset = Vector2.new(1, 0) })
+		tween:Play()
+	elseif tweenType == "rotation" then
+		object.Rotation = -180
+		local gradientInfo = TweenInfo.new(5, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut, -1)
+		local tween = TweenService:Create(object, gradientInfo, { Rotation = 180 })
+		tween:Play()
+	end
 end
 
 local bar = function(props: {
@@ -45,7 +57,7 @@ local bar = function(props: {
 			},
 		},
 	}
-	tweenGradient(Label.UIGradient)
+	tweenGradient(Label.UIGradient,"offset")
 	return create "Frame" {
 		Size = UDim2.fromScale(1, 1),
 		BackgroundTransparency = 1,
@@ -119,21 +131,76 @@ local bar = function(props: {
 	}
 end
 
+local abilityDesc = function(props: {
+	Name: string,
+	Desc: string,
+})
+	local desc = create "ImageLabel" {
+		Image = "rbxassetid://104819912607527",
+		BackgroundTransparency = 1,
+		Size = UDim2.fromScale(240/1800,114/900),
+		Position = UDim2.fromScale(1052/1800,401/900),
+		ZIndex = 3,
+		create "TextLabel" {
+			Text = props.Name,
+			AnchorPoint = Vector2.new(0.5,0.5),
+			Size = UDim2.fromScale(160/240,24/114),
+			Position = UDim2.fromScale(0.5,0.14),
+			TextScaled = true,
+			BackgroundTransparency = 1,
+			FontFace = Font.fromName "ComicNeueAngular",
+		},
+		create "TextLabel" {
+			Text = props.Desc,
+			AnchorPoint = Vector2.new(0.5,0.5),
+			Size = UDim2.fromScale(225/240,70/114),
+			Position = UDim2.fromScale(0.5,0.61),
+			TextScaled = true,
+			BackgroundTransparency = 1,
+			FontFace = Font.fromName "ComicNeueAngular",
+			TextColor3 =Color3.new(0.913725, 0.913725, 0.913725),
+		},
+	}
+	return desc
+end
+
 local abilities = function(props: {
 	Image: string,
 	Size: UDim2,
 	Position: UDim2,
+	Color1: Color3,
+	Color2: Color3,
+	Name: string,
+	Desc: string,
+	Hovered: () -> ()
 })
-	return create "TextButton" {
+
+	local ability = create "TextButton" {
 		Size = UDim2.fromScale(90/1800,90/900),
 		BackgroundColor3 = Color3.fromRGB(123, 123, 123),
 		BackgroundTransparency = 1,
 		Text = "",
+		MouseEnter = function()
+			props.Hovered({
+				Name = props.Name,
+				Desc = props.Desc,
+			})
+		end,
+		MouseLeave = function()
+			props.Hovered(nil)
+		end,
 		create "UIStroke" {
 			Thickness = 3,
-			Color = Color3.new(0.745098, 0.745098, 0.745098),
+			Color = Color3.new(1, 1, 1),
 			ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
-
+			create "UIGradient" {
+				Color = ColorSequence.new{
+				ColorSequenceKeypoint.new(0, props.Color1),
+				ColorSequenceKeypoint.new(0.25, props.Color2),
+				ColorSequenceKeypoint.new(0.75,props.Color1),
+				ColorSequenceKeypoint.new(1, props.Color2),
+				}
+			}
 		},
 		create "UIAspectRatioConstraint" {
 			AspectRatio = 1
@@ -148,6 +215,8 @@ local abilities = function(props: {
 			BackgroundTransparency = 1,
 		},
 	}
+	tweenGradient(ability.UIStroke.UIGradient, "rotation")
+	return ability
 end
 
 local mainFrame = function(x,y)
@@ -206,7 +275,16 @@ local mainFrame = function(x,y)
 			TextScaled = true,
 			TextColor3 = Color3.new(1,1,1),
 			FontFace = Font.fromName "ComicNeueAngular",
-		}
+		},
+		create "TextLabel" { --Weapons
+			Size = UDim2.fromScale(144 / x, 65 / y),
+			Position = UDim2.fromScale(1220 / x, 620 / y),
+			BackgroundTransparency = 1,
+			Text = "Weapons",
+			TextScaled = true,
+			TextColor3 = Color3.new(1,1,1),
+			FontFace = Font.fromName "ComicNeueAngular",
+		},
 	}
 end
 
@@ -233,6 +311,11 @@ return function(props: {
 		FontFace = Font.fromName "ComicNeueAngular",
 	}
 
+	local hoveredAbility = source(nil)
+	
+	local onHover = derive(function()
+		return hoveredAbility() ~= nil
+	end)
 
 	return create "Frame" { --background
 		Size = UDim2.fromScale(1, 1),
@@ -252,13 +335,9 @@ return function(props: {
 				AspectRatio = 1800/900
 			},
 			mainFrame(1800, 900),
-			--create "Frame" {
-			--	Size = UDim2.fromScale(90/1800,90/900),
-			--	Position = UDim2.fromScale(1350/1800,492/900)
-			--},
-			create "ScrollingFrame" {
+			create "ScrollingFrame" { --abilities frame 
 				Size = UDim2.fromScale(405/1800,120/900),
-				Position = UDim2.fromScale(1265/1800,460/900),
+				Position = UDim2.fromScale(1265/1800,485/900),
 				ScrollingDirection = Enum.ScrollingDirection.X,
 				ScrollBarThickness = 0,
 				ScrollBarImageTransparency = 1,
@@ -271,21 +350,37 @@ return function(props: {
 				create "UIGridLayout" {
 					FillDirection = Enum.FillDirection.Horizontal,
 					HorizontalAlignment = Enum.HorizontalAlignment.Left,
-					CellPadding = UDim2.fromScale(10/1800,10/900),
-					CellSize = UDim2.fromScale(90/1800,90/900),
+					CellPadding = UDim2.fromScale(15/1800,10/900),
+					CellSize = UDim2.fromScale(100/1800,100/900),
 					
 				},
-				abilities({
+				abilities({ --fireball
 					Image = "rbxassetid://134939278277864",
 					Size = UDim2.fromScale(75.5/90,86.5/90),
-					Position = UDim2.fromScale(9.5/90,5/90),
+					Position = UDim2.fromScale(9.5/90,3.6/90),
+					Color1 = Color3.fromRGB(222,0,0),
+					Color2 = Color3.fromRGB(254,161,4),
+					Name = "Fireball",
+					Desc = "It's hot... and you can throw it",
+					Hovered = hoveredAbility,
 				}),
-				abilities({
+				abilities({ --heal
 					Image = "rbxassetid://78192358807215",
 					Size = UDim2.fromScale(88.5/90,78.5/90),
-					Position = UDim2.fromScale(0.5/90,-0.5/90),
+					Position = UDim2.fromScale(0.5/90,0/90),
+					Color1 = Color3.fromRGB(26, 222, 0),
+					Color2 = Color3.fromRGB(216, 254, 4),
+					Name = "Heal",
+					Desc = "Click on your teammates to heal them",
+					Hovered = hoveredAbility,
 				}),
 			},
+			show(onHover,function()
+				return abilityDesc {
+					Name = hoveredAbility().Name,
+					Desc = hoveredAbility().Desc,
+				}
+			end),
 			create "ImageButton" { --save button
 				Image = "rbxassetid://100552236979659",
 				Size = UDim2.fromScale(220 / 1800, 37 / 900),
