@@ -72,10 +72,10 @@ function LobbedAttack:OnEnter(data)
 
 		local p = Instance.new("Part", workspace)
 		p.CanCollide = false
-		p.Size = 0.2 * Vector3.one
+		p.Size = 1 * Vector3.one
 		p.Position = pos
 		p.Anchored = true
-		p.Color = Color3.new(0.788235, 0.839216, 0.047059)
+		p.Color = Color3.new(0.839216, 0.047059, 0.047059)
 		Debris:AddItem(p, 1.3)
 
 		if dmg then
