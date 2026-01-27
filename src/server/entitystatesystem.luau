@@ -155,6 +155,17 @@ function ESS.Entity.GetEntity(humanoid: Humanoid): Entity?
 end
 
 --[=[
+	@return { Entity } -- All entities registered with ESS.
+]=]
+function ESS.Entity.GetEntities(): { Entity }
+	local result = {}
+	for _, entity in entity_dict do
+		table.insert(result, entity)
+	end
+	return result
+end
+
+--[=[
 	Links a humanoid with a new entity.
 
 	@param humanoid -- The humanoid to register with.
@@ -194,6 +205,7 @@ function ESS.Entity.RegisterEntity(humanoid: Humanoid): Entity
 		end)
 	)
 
+	entity_dict[self._humanoid] = self
 	return self
 end
 

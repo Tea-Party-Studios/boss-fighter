@@ -58,3 +58,28 @@ event LobbedProjectile = {
 	call : SingleAsync,
 	data : (sentTime : f64,spawn : Vector3,velocity : Vector3,dtCoefficient : f64)
 }
+
+event DefaultSwordHit = {
+	from : Client,
+	type : Reliable,
+	call : ManyAsync,
+	data : (Instance.Model[])
+}
+
+event HealTarget = {
+	from : Client,
+	type : Reliable,
+	call : ManyAsync,
+	data : (Instance.Humanoid)
+}
+
+event StopHeal = {
+	from : Client,
+	type : Reliable,
+	call : ManyAsync
+}
+
+funct GetTeammates = {
+	call: Async,
+	rets: (Instance.Humanoid[])
+}

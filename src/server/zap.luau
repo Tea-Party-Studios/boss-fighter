@@ -137,6 +137,9 @@ if not RunService:IsRunning() then
 		UpdateStats = table.freeze({
 			SetCallback = noop
 		}),
+		StopHeal = table.freeze({
+			On = noop
+		}),
 		PlayerSync = table.freeze({
 			Fire = noop,
 			FireAll = noop,
@@ -164,12 +167,21 @@ if not RunService:IsRunning() then
 			FireList = noop,
 			FireSet = noop
 		}),
+		HealTarget = table.freeze({
+			On = noop
+		}),
+		GetTeammates = table.freeze({
+			SetCallback = noop
+		}),
 		DisplayProjectile = table.freeze({
 			Fire = noop,
 			FireAll = noop,
 			FireExcept = noop,
 			FireList = noop,
 			FireSet = noop
+		}),
+		DefaultSwordHit = table.freeze({
+			On = noop
 		}),
 	}) :: Events
 end
@@ -220,7 +232,10 @@ end
 
 RunService.Heartbeat:Connect(SendEvents)
 
-local reliable_events = table.create(3)
+local reliable_events = table.create(7)
+reliable_events[5] = {}
+reliable_events[4] = {}
+reliable_events[3] = {}
 reliable.OnServerEvent:Connect(function(player, buff, inst)
 	incoming_buff = buff
 	incoming_inst = inst
@@ -238,6 +253,11 @@ reliable.OnServerEvent:Connect(function(player, buff, inst)
 			if reliable_events[2] then
 				task.spawn(reliable_events[2], player, value)
 			end
+		elseif id == 5 then -- StopHeal
+			local value
+			for _, cb in reliable_events[5] do
+				task.spawn(cb, player, value)
+			end
 		elseif id == 0 then -- PlayerRoll
 			local value
 			if reliable_events[0] then
@@ -247,6 +267,52 @@ reliable.OnServerEvent:Connect(function(player, buff, inst)
 			local value
 			if reliable_events[1] then
 				task.spawn(reliable_events[1], player, value)
+			end
+		elseif id == 4 then -- HealTarget
+			local value
+			incoming_ipos = incoming_ipos + 1
+			value = incoming_inst[incoming_ipos]
+			assert(value ~= nil, "received instance is nil!")
+			assert(value:IsA("Humanoid"), "received instance is not of the Humanoid class!")
+			for _, cb in reliable_events[4] do
+				task.spawn(cb, player, value)
+			end
+		elseif id == 3 then -- DefaultSwordHit
+			local value
+			local len_1 = buffer.readu16(incoming_buff, read(2))
+			value = table.create(len_1)
+			for i_1 = 1, len_1 do
+				local val_1
+				incoming_ipos = incoming_ipos + 1
+				val_1 = incoming_inst[incoming_ipos]
+				assert(val_1 ~= nil, "received instance is nil!")
+				assert(val_1:IsA("Model"), "received instance is not of the Model class!")
+				value[i_1] = val_1
+			end
+			for _, cb in reliable_events[3] do
+				task.spawn(cb, player, value)
+			end
+		elseif id == 6 then -- GetTeammates
+			local call_id = buffer.readu8(buff, read(1))
+			local value
+			if reliable_events[6] then
+				task.spawn(function(player_2, call_id_2, value_1)
+					local ret_1 = reliable_events[6](player_2, value_1)
+					load_player(player_2)
+					alloc(1)
+					buffer.writeu8(outgoing_buff, outgoing_apos, 4)
+					alloc(1)
+					buffer.writeu8(outgoing_buff, outgoing_apos, call_id_2)
+					local len_2 = #ret_1
+					alloc(2)
+					buffer.writeu16(outgoing_buff, outgoing_apos, len_2)
+					for i_2 = 1, len_2 do
+						local val_2 = ret_1[i_2]
+						assert(val_2:IsA("Humanoid"), "received instance is not of the Humanoid class!")
+						table.insert(outgoing_inst, val_2)
+					end
+					player_map[player_2] = save()
+				end, player, call_id, value)
 			end
 		else
 			error("Unknown event id")
@@ -267,6 +333,14 @@ local returns = {
 			reliable_events[2] = Callback
 			return function()
 				reliable_events[2] = nil
+			end
+		end,
+	},
+	StopHeal = {
+		On = function(Callback: (Player: Player) -> ()): () -> ()
+			table.insert(reliable_events[5], Callback)
+			return function()
+				table.remove(reliable_events[5], table.find(reliable_events[5], Callback))
 			end
 		end,
 	},
@@ -702,6 +776,22 @@ local returns = {
 			end
 		end,
 	},
+	HealTarget = {
+		On = function(Callback: (Player: Player, Value: (Humanoid)) -> ()): () -> ()
+			table.insert(reliable_events[4], Callback)
+			return function()
+				table.remove(reliable_events[4], table.find(reliable_events[4], Callback))
+			end
+		end,
+	},
+	GetTeammates = {
+		SetCallback = function(Callback: (Player: Player) -> (({ (Humanoid) }))): () -> ()
+			reliable_events[6] = Callback
+			return function()
+				reliable_events[6] = nil
+			end
+		end,
+	},
 	DisplayProjectile = {
 		Fire = function(Player: Player, sentTime: (number), spawn: (Vector3), velocity: (Vector3))
 			load_player(Player)
@@ -831,6 +921,14 @@ local returns = {
 				buffer.copy(outgoing_buff, outgoing_apos, buff, 0, used)
 				table.move(inst, 1, #inst, #outgoing_inst + 1, outgoing_inst)
 				player_map[player] = save()
+			end
+		end,
+	},
+	DefaultSwordHit = {
+		On = function(Callback: (Player: Player, Value: ({ (Model) })) -> ()): () -> ()
+			table.insert(reliable_events[3], Callback)
+			return function()
+				table.remove(reliable_events[3], table.find(reliable_events[3], Callback))
 			end
 		end,
 	},

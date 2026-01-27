@@ -135,6 +135,9 @@ if not RunService:IsRunning() then
 		UpdateStats = table.freeze({
 			Fire = noop
 		}),
+		StopHeal = table.freeze({
+			Fire = noop
+		}),
 		PlayerSync = table.freeze({
 			SetCallback = noop
 		}),
@@ -150,8 +153,17 @@ if not RunService:IsRunning() then
 		InIntermission = table.freeze({
 			SetCallback = noop
 		}),
+		HealTarget = table.freeze({
+			Fire = noop
+		}),
+		GetTeammates = table.freeze({
+			Call = noop
+		}),
 		DisplayProjectile = table.freeze({
 			SetCallback = noop
+		}),
+		DefaultSwordHit = table.freeze({
+			Fire = noop
 		}),
 	}) :: Events
 end
@@ -177,12 +189,14 @@ end
 
 RunService.Heartbeat:Connect(SendEvents)
 
-local reliable_events = table.create(4)
-local reliable_event_queue: { [number]: { any } } = table.create(4)
+local reliable_events = table.create(5)
+local reliable_event_queue: { [number]: { any } } = table.create(5)
+local function_call_id = 0
 reliable_event_queue[0] = {}
 reliable_event_queue[3] = {}
 reliable_event_queue[1] = {}
 reliable_event_queue[2] = {}
+reliable_event_queue[4] = table.create(255)
 reliable.OnClientEvent:Connect(function(buff, inst)
 	incoming_buff = buff
 	incoming_inst = inst
@@ -255,6 +269,25 @@ reliable.OnClientEvent:Connect(function(buff, inst)
 					warn(`[ZAP] {#reliable_event_queue[2]} events in queue for DisplayProjectile. Did you forget to attach a listener?`)
 				end
 			end
+		elseif id == 4 then -- GetTeammates
+			local call_id = buffer.readu8(incoming_buff, read(1))
+			local value
+			local len_1 = buffer.readu16(incoming_buff, read(2))
+			value = table.create(len_1)
+			for i_1 = 1, len_1 do
+				local val_1
+				incoming_ipos = incoming_ipos + 1
+				val_1 = incoming_inst[incoming_ipos]
+				assert(val_1 ~= nil, "received instance is nil!")
+				assert(val_1:IsA("Humanoid"), "received instance is not of the Humanoid class!")
+				value[i_1] = val_1
+			end
+			local thread = reliable_event_queue[4][call_id]
+			-- When using actors it's possible for multiple Zap clients to exist, but only one called the Zap remote function.
+			if thread then
+				task.spawn(thread, value)
+			end
+			reliable_event_queue[4][call_id] = nil
 		else
 			error("Unknown event id")
 		end
@@ -279,6 +312,12 @@ local returns = {
 			buffer.writeu8(outgoing_buff, outgoing_apos, NewStats["energy"])
 			alloc(1)
 			buffer.writeu8(outgoing_buff, outgoing_apos, NewStats["endurance"])
+		end,
+	},
+	StopHeal = {
+		Fire = function()
+			alloc(1)
+			buffer.writeu8(outgoing_buff, outgoing_apos, 5)
 		end,
 	},
 	PlayerSync = {
@@ -336,6 +375,30 @@ local returns = {
 			end
 		end,
 	},
+	HealTarget = {
+		Fire = function(Value: (Humanoid))
+			alloc(1)
+			buffer.writeu8(outgoing_buff, outgoing_apos, 4)
+			assert(Value:IsA("Humanoid"), "received instance is not of the Humanoid class!")
+			table.insert(outgoing_inst, Value)
+		end,
+	},
+	GetTeammates = {
+		Call = function(): (({ (Humanoid) }))
+			function_call_id += 1
+			function_call_id %= 256
+			if reliable_event_queue[4][function_call_id] then
+				function_call_id -= 1
+				error("Zap has more than 256 calls awaiting a response, and therefore this packet has been dropped")
+			end
+			alloc(1)
+			buffer.writeu8(outgoing_buff, outgoing_apos, 6)
+			alloc(1)
+			buffer.writeu8(outgoing_buff, outgoing_apos, function_call_id)
+			reliable_event_queue[4][function_call_id] = coroutine.running()
+			return coroutine.yield()
+		end,
+	},
 	DisplayProjectile = {
 		SetCallback = function(Callback: (sentTime: (number), spawn: (Vector3), velocity: (Vector3)) -> ()): () -> ()
 			reliable_events[2] = Callback
@@ -345,6 +408,20 @@ local returns = {
 			reliable_event_queue[2] = {}
 			return function()
 				reliable_events[2] = nil
+			end
+		end,
+	},
+	DefaultSwordHit = {
+		Fire = function(Value: ({ (Model) }))
+			alloc(1)
+			buffer.writeu8(outgoing_buff, outgoing_apos, 3)
+			local len_2 = #Value
+			alloc(2)
+			buffer.writeu16(outgoing_buff, outgoing_apos, len_2)
+			for i_2 = 1, len_2 do
+				local val_2 = Value[i_2]
+				assert(val_2:IsA("Model"), "received instance is not of the Model class!")
+				table.insert(outgoing_inst, val_2)
 			end
 		end,
 	},
