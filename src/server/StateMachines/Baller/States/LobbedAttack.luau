@@ -1,3 +1,4 @@
+local Debris = game:GetService "Debris"
 local Players = game:GetService "Players"
 local ReplicatedStorage = game:GetService "ReplicatedStorage"
 local RunService = game:GetService "RunService"
@@ -37,12 +38,15 @@ function LobbedAttack:OnEnter(data)
 	local pos = bossPos
 
 	local dmg = false
+	local dtCoefficient = tx / timeToTarget / 4
+	local gravity = dtCoefficient * dtCoefficient
 
-	zap.LobbedProjectile.FireAll(workspace:GetServerTimeNow(), bossPos, velocity, tx / timeToTarget / 4, target)
+	zap.LobbedProjectile.FireAll(workspace:GetServerTimeNow(), bossPos, velocity, dtCoefficient, target)
+
+	velocity = velocity * dtCoefficient
 
 	local cn = RunService.Heartbeat:Connect(function(dt: number)
-		dt *= tx / timeToTarget / 4 --I believe this /4 was added because I assumed the gravity was 1? Idk but it works pretty well
-		local stepVelocity = velocity - Vector3.yAxis * dt
+		local stepVelocity = velocity - Vector3.yAxis * dt * gravity
 		local stepDisplacement = (velocity + stepVelocity) / 2 * dt
 		local nextPos = pos + stepDisplacement
 		pos = nextPos
@@ -51,18 +55,29 @@ function LobbedAttack:OnEnter(data)
 		if target then
 			local targetPos = target.PrimaryPart.Position
 			local targetYDistance = targetPos.Y - pos.Y
-			local root = velocity.Y * velocity.Y - 2 * targetYDistance
+			local root = velocity.Y * velocity.Y - 2 * targetYDistance * gravity
 			if not (targetYDistance > 0 and velocity.Y < 0) then
 				if root >= 0 then
-					local time = velocity.Y + math.sqrt(root)
+					local time = (velocity.Y + math.sqrt(root)) / gravity
 					local hit_position = nextPos * Vector3.new(1, 0, 1)
 						+ stepVelocity * Vector3.new(1, 0, 1) * time
 						+ targetPos.Y * Vector3.yAxis
-					stepVelocity += (targetPos - hit_position) * dt
+
+					stepVelocity += (targetPos - hit_position)
 				end
 			end
 		end
+
 		velocity = stepVelocity
+
+		local p = Instance.new("Part", workspace)
+		p.CanCollide = false
+		p.Size = 0.2 * Vector3.one
+		p.Position = pos
+		p.Anchored = true
+		p.Color = Color3.new(0.788235, 0.839216, 0.047059)
+		Debris:AddItem(p, 1.3)
+
 		if dmg then
 			return
 		end

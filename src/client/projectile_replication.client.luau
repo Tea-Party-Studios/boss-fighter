@@ -43,15 +43,8 @@ zap.DisplayProjectile.SetCallback(function(sentTime: number, spawn: Vector3, vel
 	end)
 end)
 
-local function evaluate_lobbed_position(
-	pos: Vector3,
-	velocity: Vector3,
-	dt: number,
-	dtCoefficient: number,
-	target: Model
-)
-	dt *= dtCoefficient
-	local stepVelocity = velocity - Vector3.yAxis * dt
+local function evaluate_lobbed_position(pos: Vector3, velocity: Vector3, dt: number, gravity: number, target: Model)
+	local stepVelocity = velocity - Vector3.yAxis * dt * gravity
 	local stepDisplacement = (velocity + stepVelocity) / 2 * dt
 	local nextPos = pos + stepDisplacement
 	pos = nextPos
@@ -60,38 +53,41 @@ local function evaluate_lobbed_position(
 	if target then
 		local targetPos = target.PrimaryPart.Position
 		local targetYDistance = targetPos.Y - pos.Y
-		local root = velocity.Y * velocity.Y - 2 * targetYDistance
+		local root = velocity.Y * velocity.Y - 2 * targetYDistance * gravity
 		if not (targetYDistance > 0 and velocity.Y < 0) then
 			if root >= 0 then
-				local time = velocity.Y + math.sqrt(root)
+				local time = (velocity.Y + math.sqrt(root)) / gravity
 				local hit_position = nextPos * Vector3.new(1, 0, 1)
 					+ stepVelocity * Vector3.new(1, 0, 1) * time
 					+ targetPos.Y * Vector3.yAxis
+
 				--debug place a part there
-				local p = Instance.new("Part", workspace)
-				p.CanCollide = false
-				p.Size = 0.2 * Vector3.one
-				p.Position = hit_position
-				p.Anchored = true
-				p.Color = Color3.new(0.788235, 0.839216, 0.047059)
-				Debris:AddItem(p, 0.1)
-				stepVelocity += (targetPos - hit_position) * dt
+				--local p = Instance.new("Part", workspace)
+				--p.CanCollide = false
+				--p.Size = 0.2 * Vector3.one
+				--p.Position = hit_position
+				--p.Anchored = true
+				--p.Color = Color3.new(0.113725, 0.839216, 0.047059)
+				--Debris:AddItem(p, 0.1)
+
+				stepVelocity += (targetPos - hit_position)
 			end
 		end
 	end
-
+	--print(stepVelocity.Y)
 	return nextPos, stepVelocity
 end
 zap.LobbedProjectile.SetCallback(
 	function(sentTime: number, spawn: Vector3, init_velocity: Vector3, dtCoefficient: number, target: Model)
-		--ex: if the lag distance travelled is half the distance then dtCoefficient is *2
-		--if the lag distance is 1/3rd the distance then dtCoefficient *3/2
+		local pos: Vector3, velocity: Vector3
 		local xSpeed = (init_velocity * Vector3.new(1, 0, 1)).Magnitude * dtCoefficient
 		local targetXDistance = ((spawn - target.PrimaryPart.Position) * Vector3.new(1, 0, 1)).Magnitude
 		local timeToTarget = targetXDistance / xSpeed
 		local pingTime = (workspace:GetServerTimeNow() - sentTime) * 2
 		dtCoefficient *= timeToTarget / (timeToTarget - pingTime) * 1.1
-		local pos, velocity = evaluate_lobbed_position(spawn, init_velocity, 0, dtCoefficient, target)
+		local gravity = dtCoefficient * dtCoefficient
+		velocity = init_velocity * dtCoefficient
+		pos, velocity = evaluate_lobbed_position(spawn, velocity, 0, gravity, target)
 
 		--by the time (workspace:GetServerTimeNow() - sentTime) * 2 + 0.01
 		--[[ local pos, velocity = evaluate_lobbed_position(
@@ -112,8 +108,8 @@ zap.LobbedProjectile.SetCallback(
 		projectile.Position = pos
 		projectile.Material = Enum.Material.SmoothPlastic
 
-		local cn = RunService.Heartbeat:Connect(function(dt: number)
-			pos, velocity = evaluate_lobbed_position(pos, velocity, dt, dtCoefficient, target)
+		local cn = RunService.PreSimulation:Connect(function(dt: number)
+			pos, velocity = evaluate_lobbed_position(pos, velocity, dt, gravity, target)
 			projectile.CFrame = CFrame.new(pos, pos + velocity)
 		end)
 		task.delay(timeToTarget + 1, function()
