@@ -32,7 +32,7 @@ function Spike:OnEnter(data: { baller: Model })
 	local pos = bossPos
 
 	print(workspace:GetServerTimeNow())
-	zap.DisplayProjectile.FireAll(workspace:GetServerTimeNow(), bossPos, velocity)
+	zap.DisplayProjectile.FireAll(workspace:GetServerTimeNow(), bossPos, velocity, target)
 
 	local projectile = Instance.new "Part"
 	projectile.Shape = Enum.PartType.Ball
@@ -52,11 +52,11 @@ function Spike:OnEnter(data: { baller: Model })
 		if dmg then
 			return
 		end
-		for _, part in workspace:GetPartsInPart(projectile) do
+		for _, part in workspace:GetPartBoundsInRadius(pos, 2) do
 			if not Players:GetPlayerFromCharacter(part.Parent) then
-				return
+				continue
 			end
-			print "hit straight!"
+			print "hit straight server!"
 			part.Parent.Humanoid:TakeDamage(10)
 			dmg = true
 			break

@@ -8,11 +8,18 @@ local function evaluate_position(pos: Vector3, velocity: Vector3, dt: number)
 	return pos + velocity * dt
 end
 
-zap.DisplayProjectile.SetCallback(function(sentTime: number, spawn: Vector3, velocity: Vector3)
+zap.DisplayProjectile.SetCallback(function(sentTime: number, spawn: Vector3, velocity: Vector3, target: Model)
 	print(workspace:GetServerTimeNow() - sentTime)
 	--add a bit of extra lag compensation to be safe except this is currently a teleport (maybe a speed up instead)
 	--local pos = spawn + velocity * ((workspace:GetServerTimeNow() - sentTime) * 2 + 0.01)
-	local pos = evaluate_position(spawn, velocity, (workspace:GetServerTimeNow() - sentTime) * 2 + 0.01)
+	print(target)
+	local xSpeed = (velocity * Vector3.new(1, 0, 1)).Magnitude
+	local targetXDistance = ((spawn - target.PrimaryPart.Position) * Vector3.new(1, 0, 1)).Magnitude
+	local timeToTarget = targetXDistance / xSpeed
+	local pingTime = (workspace:GetServerTimeNow() - sentTime) * 2
+	velocity *= timeToTarget / (timeToTarget - pingTime)
+	print "hi"
+	local pos = spawn
 
 	local projectile = Instance.new "Part"
 	projectile.Shape = Enum.PartType.Ball
@@ -81,10 +88,8 @@ zap.LobbedProjectile.SetCallback(
 		--if the lag distance is 1/3rd the distance then dtCoefficient *3/2
 		local xSpeed = (init_velocity * Vector3.new(1, 0, 1)).Magnitude * dtCoefficient
 		local targetXDistance = ((spawn - target.PrimaryPart.Position) * Vector3.new(1, 0, 1)).Magnitude
-		print(xSpeed, targetXDistance)
 		local timeToTarget = targetXDistance / xSpeed
 		local pingTime = (workspace:GetServerTimeNow() - sentTime) * 2
-		print(timeToTarget, pingTime)
 		dtCoefficient *= timeToTarget / (timeToTarget - pingTime) * 1.1
 		local pos, velocity = evaluate_lobbed_position(spawn, init_velocity, 0, dtCoefficient, target)
 
@@ -107,25 +112,11 @@ zap.LobbedProjectile.SetCallback(
 		projectile.Position = pos
 		projectile.Material = Enum.Material.SmoothPlastic
 
-		local dmg = false
-
 		local cn = RunService.Heartbeat:Connect(function(dt: number)
 			pos, velocity = evaluate_lobbed_position(pos, velocity, dt, dtCoefficient, target)
 			projectile.CFrame = CFrame.new(pos, pos + velocity)
-			if dmg then
-				return
-			end
-			for _, part in workspace:GetPartsInPart(projectile) do
-				if not Players:GetPlayerFromCharacter(part.Parent) then
-					continue
-				end
-				print "hit lobbed client!"
-				--part.Parent.Humanoid:TakeDamage(10)
-				dmg = true
-				break
-			end
 		end)
-		task.delay(10, function()
+		task.delay(timeToTarget + 1, function()
 			cn:Disconnect()
 			projectile:Destroy()
 		end)

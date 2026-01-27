@@ -49,7 +49,7 @@ event DisplayProjectile = {
 	from : Server,
 	type : Reliable,
 	call : SingleAsync,
-	data : (sentTime : f64,spawn : Vector3, velocity : Vector3)
+	data : (sentTime : f64,spawn : Vector3, velocity : Vector3,target : Instance.Model)
 }
 
 event LobbedProjectile = {

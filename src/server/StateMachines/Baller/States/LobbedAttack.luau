@@ -88,7 +88,7 @@ function LobbedAttack:OnEnter(data)
 		part.Parent.Humanoid:TakeDamage(10)
 	end)]]
 
-	task.delay(timeToTarget + 2, function()
+	task.delay(timeToTarget + 1, function()
 		cn:Disconnect()
 	end)
 	task.delay(4, function()

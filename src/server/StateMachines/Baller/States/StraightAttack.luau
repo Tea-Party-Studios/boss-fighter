@@ -25,7 +25,7 @@ function StraightAttack:OnEnter(data)
 	local pos = bossPos
 
 	print(workspace:GetServerTimeNow())
-	zap.DisplayProjectile.FireAll(workspace:GetServerTimeNow(), bossPos, velocity)
+	zap.DisplayProjectile.FireAll(workspace:GetServerTimeNow(), bossPos, velocity, target)
 
 	local projectile = Instance.new "Part"
 	projectile.Shape = Enum.PartType.Ball
