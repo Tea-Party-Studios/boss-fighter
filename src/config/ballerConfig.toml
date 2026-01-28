@@ -1,0 +1,12 @@
+BallDiameter = 4
+
+[Lob]
+MinAngle = 40
+MaxAngle = 70
+
+[Spike]
+ExplosionRadius = 16
+JumpHeight = 50
+JumpDuration = 1
+BallSpeed = 50
+ExplosionDamage = 20

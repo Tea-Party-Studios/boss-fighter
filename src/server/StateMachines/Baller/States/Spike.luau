@@ -1,8 +1,10 @@
+local Debris = game:GetService "Debris"
 local Players = game:GetService "Players"
 local ReplicatedStorage = game:GetService "ReplicatedStorage"
 local RunService = game:GetService "RunService"
 local ServerScriptService = game:GetService "ServerScriptService"
 local TweenService = game:GetService "TweenService"
+local ballerConfig = require(ReplicatedStorage.Config.ballerConfig)
 local zap = require(ServerScriptService.Server.zap)
 local robloxstatemachine = require(ReplicatedStorage.Packages.robloxstatemachine)
 local Baller = script.Parent.Parent
@@ -14,75 +16,69 @@ Spike.Transitions = { require(Baller.Transitions.returnToNeutral) }
 function Spike:OnEnter(data: { baller: Model })
 	data.baller.MovementVelocity.PlaneVelocity = Vector2.zero
 	data.baller.PrimaryPart.Anchored = true
+	data.timer = 0
 	TweenService:Create(
 		data.baller.PrimaryPart,
-		TweenInfo.new(1, Enum.EasingStyle.Linear),
-		{ CFrame = data.baller.PrimaryPart.CFrame + Vector3.yAxis * 50 }
+		TweenInfo.new(ballerConfig.Spike.JumpDuration, Enum.EasingStyle.Linear),
+		{ CFrame = data.baller.PrimaryPart.CFrame + Vector3.yAxis * ballerConfig.Spike.JumpHeight }
 	):Play()
-	task.wait(1.5)
+end
 
-	local target = data.players[1].Character :: Model
-	local bossPos: Vector3 = data.baller.Torso.Position
+function justCrossed(threshold, currentTime, dt)
+	return currentTime > threshold and currentTime - dt < threshold
+end
 
-	local targetPos = target:GetPivot().Position
+local raycastParams = RaycastParams.new()
+raycastParams.FilterDescendantsInstances = { workspace.BallerMap }
+raycastParams.FilterType = Enum.RaycastFilterType.Include
 
-	local direction = (targetPos - bossPos).Unit
-	local SPEED = 50
-	local velocity = direction * SPEED
-	local pos = bossPos
+function Spike:OnHeartbeat(data, dt)
+	data.timer += dt
+	if justCrossed(ballerConfig.Spike.JumpDuration, data.timer, dt) then
+		local target = data.target
+		local bossPos: Vector3 = data.baller.Torso.Position
 
-	print(workspace:GetServerTimeNow())
-	zap.DisplayProjectile.FireAll(workspace:GetServerTimeNow(), bossPos, velocity, target)
+		local targetPos = target:GetPivot().Position
 
-	local projectile = Instance.new "Part"
-	projectile.Shape = Enum.PartType.Ball
-	projectile.Size = Vector3.one * 4
-	projectile.CanCollide = false
-	projectile.Color = Color3.new(1, 0, 0)
-	projectile.Transparency = 0
-	projectile.Parent = workspace
-	projectile.Anchored = true
-	projectile.Position = pos
-	projectile.Material = Enum.Material.SmoothPlastic
-	local dmg = false
-	local cn = RunService.Heartbeat:Connect(function(dt: number)
-		local nextPos = pos + velocity * dt
-		pos = nextPos
-		projectile.CFrame = CFrame.new(pos, pos + velocity)
-		if dmg then
-			return
-		end
-		for _, part in workspace:GetPartBoundsInRadius(pos, 2) do
-			if not Players:GetPlayerFromCharacter(part.Parent) then
-				continue
+		local direction = (targetPos - bossPos).Unit
+		local velocity = direction * ballerConfig.Spike.BallSpeed
+		local pos = bossPos
+
+		zap.SpikeProjectile.FireAll(workspace:GetServerTimeNow(), bossPos, velocity, target)
+		data.heartbeat = RunService.Heartbeat:Connect(function(dt: number)
+			local nextPos = pos + velocity * dt
+			local raycastResult = workspace:Raycast(pos, nextPos - pos, raycastParams)
+
+			if raycastResult then
+				print "damaging explosion!!"
+				for _, playerPart in workspace:GetPartBoundsInRadius(nextPos, ballerConfig.Spike.ExplosionRadius) do
+					if not Players:GetPlayerFromCharacter(playerPart.Parent) then
+						continue
+					end
+					--TODO: this only damages one player
+					playerPart.Parent.Humanoid:TakeDamage(ballerConfig.Spike.ExplosionDamage)
+					break
+				end
+				data.heartbeat:Disconnect()
 			end
-			print "hit straight server!"
-			part.Parent.Humanoid:TakeDamage(10)
-			dmg = true
-			break
-		end
-	end)
-
-	--TODO: replace touched with parts in part
-	--projectile.Touched:Connect(function(part: BasePart) end)
-
-	task.delay(3, function()
+			pos = nextPos
+		end)
+	elseif justCrossed(3, data.timer, dt) then
 		TweenService:Create(
 			data.baller.PrimaryPart,
-			TweenInfo.new(1, Enum.EasingStyle.Linear),
-			{ CFrame = data.baller.PrimaryPart.CFrame - Vector3.yAxis * 50 }
+			TweenInfo.new(ballerConfig.Spike.JumpDuration, Enum.EasingStyle.Linear),
+			{ CFrame = data.baller.PrimaryPart.CFrame - Vector3.yAxis * ballerConfig.Spike.JumpHeight }
 		):Play()
-		task.wait(1)
+	elseif justCrossed(3 + ballerConfig.Spike.JumpDuration, data.timer, dt) then
 		data.baller.PrimaryPart.Anchored = false
-	end)
-
-	task.delay(4, function()
-		cn:Disconnect()
-		projectile:Destroy()
-	end)
-	task.delay(9, function()
 		data.endState = true
-	end)
+	end
+end
+
+function Spike:OnLeave(data)
+	if data.heartbeat then
+		data.heartbeat:Disconnect()
+	end
 end
 
 return Spike

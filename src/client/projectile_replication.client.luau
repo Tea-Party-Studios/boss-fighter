@@ -1,31 +1,26 @@
 local Debris = game:GetService "Debris"
-local Players = game:GetService "Players"
 local ReplicatedStorage = game:GetService "ReplicatedStorage"
 local RunService = game:GetService "RunService"
+local ballerConfig = require(ReplicatedStorage.Config.ballerConfig)
 local zap = require(ReplicatedStorage.Shared.zap)
 
 local function evaluate_position(pos: Vector3, velocity: Vector3, dt: number)
 	return pos + velocity * dt
 end
 
-zap.DisplayProjectile.SetCallback(function(sentTime: number, spawn: Vector3, velocity: Vector3, target: Model)
-	print(workspace:GetServerTimeNow() - sentTime)
-	--add a bit of extra lag compensation to be safe except this is currently a teleport (maybe a speed up instead)
-	--local pos = spawn + velocity * ((workspace:GetServerTimeNow() - sentTime) * 2 + 0.01)
-	print(target)
+zap.StraightProjectile.SetCallback(function(sentTime: number, spawn: Vector3, velocity: Vector3, target: Model)
 	local xSpeed = (velocity * Vector3.new(1, 0, 1)).Magnitude
 	local targetXDistance = ((spawn - target.PrimaryPart.Position) * Vector3.new(1, 0, 1)).Magnitude
 	local timeToTarget = targetXDistance / xSpeed
 	local pingTime = (workspace:GetServerTimeNow() - sentTime) * 2
 	velocity *= timeToTarget / (timeToTarget - pingTime)
-	print "hi"
 	local pos = spawn
 
 	local projectile = Instance.new "Part"
 	projectile.Shape = Enum.PartType.Ball
-	projectile.Size = Vector3.one * 4
+	projectile.Size = Vector3.one * ballerConfig.BallDiameter
 	projectile.CanCollide = false
-	projectile.Color = Color3.new(0, 0.066667, 1)
+	projectile.Color = Color3.new(1, 0, 0)
 	projectile.Parent = workspace
 	projectile.Anchored = true
 	--print(velocity)
@@ -40,6 +35,61 @@ zap.DisplayProjectile.SetCallback(function(sentTime: number, spawn: Vector3, vel
 	task.delay(4, function()
 		cn:Disconnect()
 		projectile:Destroy()
+	end)
+end)
+
+local raycastParams = RaycastParams.new()
+raycastParams.FilterDescendantsInstances = { workspace.BallerMap }
+raycastParams.FilterType = Enum.RaycastFilterType.Include
+
+zap.SpikeProjectile.SetCallback(function(sentTime: number, spawn: Vector3, velocity: Vector3, target: Model)
+	--because this projectile only ever hits the floor, you could always use a raycast instead to determine distance
+	local xSpeed = (velocity * Vector3.new(1, 0, 1)).Magnitude
+	local targetXDistance = ((spawn - target.PrimaryPart.Position) * Vector3.new(1, 0, 1)).Magnitude
+	local timeToTarget = targetXDistance / xSpeed
+	local pingTime = (workspace:GetServerTimeNow() - sentTime) * 2
+	velocity *= timeToTarget / (timeToTarget - pingTime)
+	local pos = spawn
+
+	local projectile = Instance.new "Part"
+	projectile.Shape = Enum.PartType.Ball
+	projectile.Size = Vector3.one * ballerConfig.BallDiameter
+	projectile.CanCollide = false
+	projectile.Color = Color3.new(1, 0, 0)
+	projectile.Parent = workspace
+	projectile.Anchored = true
+	projectile.Position = pos
+	projectile.Material = Enum.Material.SmoothPlastic
+
+	local cn
+	cn = RunService.Heartbeat:Connect(function(dt: number)
+		local nextPos = evaluate_position(pos, velocity, dt)
+		local raycastResult = workspace:Raycast(pos, nextPos - pos, raycastParams)
+		if raycastResult then
+			print "making explosion"
+			local explosion = Instance.new "Part"
+			explosion.Shape = Enum.PartType.Ball
+			explosion.Size = Vector3.one * ballerConfig.Spike.ExplosionRadius * 2
+			explosion.CanCollide = false
+			explosion.Color = Color3.new(1, 0, 0)
+			explosion.Parent = workspace
+			explosion.Anchored = true
+			explosion.Transparency = 0.7
+			explosion.Material = Enum.Material.SmoothPlastic
+			explosion.Position = nextPos
+			Debris:AddItem(explosion, 0.5)
+			projectile:Destroy()
+			cn:Disconnect()
+		end
+		pos = nextPos
+		projectile.CFrame = CFrame.new(pos, pos + velocity)
+	end)
+
+	task.delay(4, function()
+		if cn then
+			cn:Disconnect()
+			projectile:Destroy()
+		end
 	end)
 end)
 
@@ -61,22 +111,13 @@ local function evaluate_lobbed_position(pos: Vector3, velocity: Vector3, dt: num
 					+ stepVelocity * Vector3.new(1, 0, 1) * time
 					+ targetPos.Y * Vector3.yAxis
 
-				--debug place a part there
-				--local p = Instance.new("Part", workspace)
-				--p.CanCollide = false
-				--p.Size = 0.2 * Vector3.one
-				--p.Position = hit_position
-				--p.Anchored = true
-				--p.Color = Color3.new(0.113725, 0.839216, 0.047059)
-				--Debris:AddItem(p, 0.1)
-
 				stepVelocity += (targetPos - hit_position)
 			end
 		end
 	end
-	--print(stepVelocity.Y)
 	return nextPos, stepVelocity
 end
+
 zap.LobbedProjectile.SetCallback(
 	function(sentTime: number, spawn: Vector3, init_velocity: Vector3, dtCoefficient: number, target: Model)
 		local pos: Vector3, velocity: Vector3
@@ -88,15 +129,6 @@ zap.LobbedProjectile.SetCallback(
 		local gravity = dtCoefficient * dtCoefficient
 		velocity = init_velocity * dtCoefficient
 		pos, velocity = evaluate_lobbed_position(spawn, velocity, 0, gravity, target)
-
-		--by the time (workspace:GetServerTimeNow() - sentTime) * 2 + 0.01
-		--[[ local pos, velocity = evaluate_lobbed_position(
-			spawn,
-			init_velocity,
-			(workspace:GetServerTimeNow() - sentTime) * 2,
-			dtCoefficient,
-			target
-		) ]]
 
 		local projectile = Instance.new "Part"
 		projectile.Shape = Enum.PartType.Ball

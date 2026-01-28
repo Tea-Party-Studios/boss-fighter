@@ -45,7 +45,7 @@ event UpdateStats = {
 	})
 }
 
-event DisplayProjectile = {
+event StraightProjectile = {
 	from : Server,
 	type : Reliable,
 	call : SingleAsync,
@@ -57,4 +57,11 @@ event LobbedProjectile = {
 	type : Reliable,
 	call : SingleAsync,
 	data : (sentTime : f64,spawn : Vector3,velocity : Vector3,dtCoefficient : f64,target : Instance.Model)
+}
+
+event SpikeProjectile = {
+	from : Server,
+	type : Reliable,
+	call : SingleAsync,
+	data : (sentTime : f64,spawn : Vector3,velocity : Vector3,target : Instance.Model)
 }
