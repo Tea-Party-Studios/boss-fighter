@@ -15,7 +15,7 @@ function LobbedAttack:OnEnter(data)
 	--tell every client to prepare the attack
 	data.baller.MovementVelocity.PlaneVelocity = Vector2.zero
 
-	local target = data.players[1].Character :: Model
+	local target = data.target
 	local bossPos: Vector3 = data.baller.Torso.Position
 
 	local angle = math.rad(math.random(40, 70))
@@ -112,7 +112,7 @@ function LobbedAttack:OnEnter(data)
 end
 
 function LobbedAttack:OnHeartbeat(data, dt)
-	local target: Model = data.players[1].Character
+	local target: Model = data.target
 	local targetPos = target:GetPivot().Position
 	local baller: Model = data.baller
 	local ballerPos = baller:GetPivot().Position

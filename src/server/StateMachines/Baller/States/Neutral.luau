@@ -16,7 +16,11 @@ end
 
 function Neutral:OnHeartbeat(data, dt)
 	data.timer += dt
-	local target: Model = data.players[1].Character
+	--should look at the nearest player?
+	if data.timer % 1 <= dt or not data.target then
+		data.target = data.players[math.random(1, #data.players)]
+	end
+	local target: Model = data.target.Character
 	local targetPos = target:GetPivot().Position
 	local baller: Model = data.baller
 	local ballerPos = baller:GetPivot().Position
@@ -27,16 +31,16 @@ function Neutral:OnHeartbeat(data, dt)
 	local dist = (ballerPos - targetPos).Magnitude
 
 	if dist < 40 then
-		baller.MovementVelocity.PlaneVelocity = Vector2.new(0, -2)
+		baller.MovementVelocity.PlaneVelocity = Vector2.new(0, -5)
 	elseif dist > 100 then
 		baller.MovementVelocity.PlaneVelocity = Vector2.new(0, 2)
 	end
 	if data.timer > 1 then
 		data.timer -= 1
 		local option = math.random()
-		if option < 1 / 3 then
+		if option < 1 then
 			data.nextState = "SpikeAttack"
-		elseif option < 2 / 3 then
+		elseif option < 0 then
 			data.nextState = "StraightAttack"
 		else
 			data.nextState = "LobbedAttack"
