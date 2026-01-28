@@ -1,4 +1,3 @@
-local Debris = game:GetService "Debris"
 local Players = game:GetService "Players"
 local ReplicatedStorage = game:GetService "ReplicatedStorage"
 local RunService = game:GetService "RunService"
@@ -63,13 +62,13 @@ function Spike:OnHeartbeat(data, dt)
 			end
 			pos = nextPos
 		end)
-	elseif justCrossed(3, data.timer, dt) then
+	elseif justCrossed(ballerConfig.Spike.AirTime, data.timer, dt) then
 		TweenService:Create(
 			data.baller.PrimaryPart,
 			TweenInfo.new(ballerConfig.Spike.JumpDuration, Enum.EasingStyle.Linear),
 			{ CFrame = data.baller.PrimaryPart.CFrame - Vector3.yAxis * ballerConfig.Spike.JumpHeight }
 		):Play()
-	elseif justCrossed(3 + ballerConfig.Spike.JumpDuration, data.timer, dt) then
+	elseif justCrossed(ballerConfig.Spike.AirTime + ballerConfig.Spike.JumpDuration, data.timer, dt) then
 		data.baller.PrimaryPart.Anchored = false
 		data.endState = true
 	end

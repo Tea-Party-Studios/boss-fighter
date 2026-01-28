@@ -760,7 +760,7 @@ local returns = {
 		end,
 	},
 	LobbedProjectile = {
-		Fire = function(Player: Player, sentTime: (number), spawn: (Vector3), velocity: (Vector3), dtCoefficient: (number), target: (Model))
+		Fire = function(Player: Player, sentTime: (number), spawn: (Vector3), velocity: (Vector3), target: (Model))
 			load_player(Player)
 			alloc(1)
 			buffer.writeu8(outgoing_buff, outgoing_apos, 3)
@@ -778,13 +778,11 @@ local returns = {
 			buffer.writef32(outgoing_buff, outgoing_apos, velocity.Y)
 			alloc(4)
 			buffer.writef32(outgoing_buff, outgoing_apos, velocity.Z)
-			alloc(8)
-			buffer.writef64(outgoing_buff, outgoing_apos, dtCoefficient)
 			assert(target:IsA("Model"), "received instance is not of the Model class!")
 			table.insert(outgoing_inst, target)
 			player_map[Player] = save()
 		end,
-		FireAll = function(sentTime: (number), spawn: (Vector3), velocity: (Vector3), dtCoefficient: (number), target: (Model))
+		FireAll = function(sentTime: (number), spawn: (Vector3), velocity: (Vector3), target: (Model))
 			load_empty()
 			alloc(1)
 			buffer.writeu8(outgoing_buff, outgoing_apos, 3)
@@ -802,8 +800,6 @@ local returns = {
 			buffer.writef32(outgoing_buff, outgoing_apos, velocity.Y)
 			alloc(4)
 			buffer.writef32(outgoing_buff, outgoing_apos, velocity.Z)
-			alloc(8)
-			buffer.writef64(outgoing_buff, outgoing_apos, dtCoefficient)
 			assert(target:IsA("Model"), "received instance is not of the Model class!")
 			table.insert(outgoing_inst, target)
 			local buff, used, inst = outgoing_buff, outgoing_used, outgoing_inst
@@ -815,7 +811,7 @@ local returns = {
 				player_map[player] = save()
 			end
 		end,
-		FireExcept = function(Except: Player, sentTime: (number), spawn: (Vector3), velocity: (Vector3), dtCoefficient: (number), target: (Model))
+		FireExcept = function(Except: Player, sentTime: (number), spawn: (Vector3), velocity: (Vector3), target: (Model))
 			load_empty()
 			alloc(1)
 			buffer.writeu8(outgoing_buff, outgoing_apos, 3)
@@ -833,8 +829,6 @@ local returns = {
 			buffer.writef32(outgoing_buff, outgoing_apos, velocity.Y)
 			alloc(4)
 			buffer.writef32(outgoing_buff, outgoing_apos, velocity.Z)
-			alloc(8)
-			buffer.writef64(outgoing_buff, outgoing_apos, dtCoefficient)
 			assert(target:IsA("Model"), "received instance is not of the Model class!")
 			table.insert(outgoing_inst, target)
 			local buff, used, inst = outgoing_buff, outgoing_used, outgoing_inst
@@ -848,7 +842,7 @@ local returns = {
 				end
 			end
 		end,
-		FireList = function(List: { [unknown]: Player }, sentTime: (number), spawn: (Vector3), velocity: (Vector3), dtCoefficient: (number), target: (Model))
+		FireList = function(List: { [unknown]: Player }, sentTime: (number), spawn: (Vector3), velocity: (Vector3), target: (Model))
 			load_empty()
 			alloc(1)
 			buffer.writeu8(outgoing_buff, outgoing_apos, 3)
@@ -866,8 +860,6 @@ local returns = {
 			buffer.writef32(outgoing_buff, outgoing_apos, velocity.Y)
 			alloc(4)
 			buffer.writef32(outgoing_buff, outgoing_apos, velocity.Z)
-			alloc(8)
-			buffer.writef64(outgoing_buff, outgoing_apos, dtCoefficient)
 			assert(target:IsA("Model"), "received instance is not of the Model class!")
 			table.insert(outgoing_inst, target)
 			local buff, used, inst = outgoing_buff, outgoing_used, outgoing_inst
@@ -879,7 +871,7 @@ local returns = {
 				player_map[player] = save()
 			end
 		end,
-		FireSet = function(Set: { [Player]: any }, sentTime: (number), spawn: (Vector3), velocity: (Vector3), dtCoefficient: (number), target: (Model))
+		FireSet = function(Set: { [Player]: any }, sentTime: (number), spawn: (Vector3), velocity: (Vector3), target: (Model))
 			load_empty()
 			alloc(1)
 			buffer.writeu8(outgoing_buff, outgoing_apos, 3)
@@ -897,8 +889,6 @@ local returns = {
 			buffer.writef32(outgoing_buff, outgoing_apos, velocity.Y)
 			alloc(4)
 			buffer.writef32(outgoing_buff, outgoing_apos, velocity.Z)
-			alloc(8)
-			buffer.writef64(outgoing_buff, outgoing_apos, dtCoefficient)
 			assert(target:IsA("Model"), "received instance is not of the Model class!")
 			table.insert(outgoing_inst, target)
 			local buff, used, inst = outgoing_buff, outgoing_used, outgoing_inst

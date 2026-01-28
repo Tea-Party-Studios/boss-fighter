@@ -118,35 +118,34 @@ local function evaluate_lobbed_position(pos: Vector3, velocity: Vector3, dt: num
 	return nextPos, stepVelocity
 end
 
-zap.LobbedProjectile.SetCallback(
-	function(sentTime: number, spawn: Vector3, init_velocity: Vector3, dtCoefficient: number, target: Model)
-		local pos: Vector3, velocity: Vector3
-		local xSpeed = (init_velocity * Vector3.new(1, 0, 1)).Magnitude * dtCoefficient
-		local targetXDistance = ((spawn - target.PrimaryPart.Position) * Vector3.new(1, 0, 1)).Magnitude
-		local timeToTarget = targetXDistance / xSpeed
-		local pingTime = (workspace:GetServerTimeNow() - sentTime) * 2
-		dtCoefficient *= timeToTarget / (timeToTarget - pingTime) * 1.1
-		local gravity = dtCoefficient * dtCoefficient
-		velocity = init_velocity * dtCoefficient
-		pos, velocity = evaluate_lobbed_position(spawn, velocity, 0, gravity, target)
+zap.LobbedProjectile.SetCallback(function(sentTime: number, spawn: Vector3, init_velocity: Vector3, target: Model)
+	local pos: Vector3, velocity: Vector3
+	local dtCoefficient = ballerConfig.Lob.HorizontalSpeedCoefficient
+	local xSpeed = (init_velocity * Vector3.new(1, 0, 1)).Magnitude * dtCoefficient
+	local targetXDistance = ((spawn - target.PrimaryPart.Position) * Vector3.new(1, 0, 1)).Magnitude
+	local timeToTarget = targetXDistance / xSpeed
+	local pingTime = (workspace:GetServerTimeNow() - sentTime) * 2
+	dtCoefficient *= timeToTarget / (timeToTarget - pingTime) * 1.1
+	local gravity = dtCoefficient * dtCoefficient
+	velocity = init_velocity * dtCoefficient
+	pos, velocity = evaluate_lobbed_position(spawn, velocity, 0, gravity, target)
 
-		local projectile = Instance.new "Part"
-		projectile.Shape = Enum.PartType.Ball
-		projectile.Size = Vector3.one * 4
-		projectile.CanCollide = false
-		projectile.Color = Color3.new(1, 0, 0)
-		projectile.Parent = workspace
-		projectile.Anchored = true
-		projectile.Position = pos
-		projectile.Material = Enum.Material.SmoothPlastic
+	local projectile = Instance.new "Part"
+	projectile.Shape = Enum.PartType.Ball
+	projectile.Size = Vector3.one * 4
+	projectile.CanCollide = false
+	projectile.Color = Color3.new(1, 0, 0)
+	projectile.Parent = workspace
+	projectile.Anchored = true
+	projectile.Position = pos
+	projectile.Material = Enum.Material.SmoothPlastic
 
-		local cn = RunService.PreSimulation:Connect(function(dt: number)
-			pos, velocity = evaluate_lobbed_position(pos, velocity, dt, gravity, target)
-			projectile.CFrame = CFrame.new(pos, pos + velocity)
-		end)
-		task.delay(timeToTarget + 1, function()
-			cn:Disconnect()
-			projectile:Destroy()
-		end)
-	end
-)
+	local cn = RunService.PreSimulation:Connect(function(dt: number)
+		pos, velocity = evaluate_lobbed_position(pos, velocity, dt, gravity, target)
+		projectile.CFrame = CFrame.new(pos, pos + velocity)
+	end)
+	task.delay(timeToTarget + 1, function()
+		cn:Disconnect()
+		projectile:Destroy()
+	end)
+end)

@@ -38,12 +38,12 @@ function LobbedAttack:OnEnter(data)
 	local pos = bossPos
 
 	local dmg = false
-	local dtCoefficient = 50 / 4
+	local dtCoefficient = ballerConfig.Lob.HorizontalSpeedCoefficient
 	local gravity = dtCoefficient * dtCoefficient
 
-	zap.LobbedProjectile.FireAll(workspace:GetServerTimeNow(), bossPos, velocity, dtCoefficient, target)
+	zap.LobbedProjectile.FireAll(workspace:GetServerTimeNow(), bossPos, velocity, target)
 
-	velocity = velocity * dtCoefficient
+	velocity *= dtCoefficient
 
 	data.heartbeat = RunService.Heartbeat:Connect(function(dt: number)
 		local stepVelocity = velocity - Vector3.yAxis * dt * gravity
@@ -81,12 +81,12 @@ function LobbedAttack:OnEnter(data)
 		if dmg then
 			return
 		end
-		for _, part in workspace:GetPartBoundsInRadius(pos, 2) do
+		for _, part in workspace:GetPartBoundsInRadius(pos, ballerConfig.BallDiameter / 2) do
 			if not Players:GetPlayerFromCharacter(part.Parent) then
 				continue
 			end
 			print "hit lobbed server!"
-			part.Parent.Humanoid:TakeDamage(10)
+			part.Parent.Humanoid:TakeDamage(ballerConfig.Lob.Damage)
 			dmg = true
 			break
 		end

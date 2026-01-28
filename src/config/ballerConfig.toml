@@ -3,6 +3,12 @@ BallDiameter = 4
 [Lob]
 MinAngle = 40
 MaxAngle = 70
+Damage = 10
+HorizontalSpeedCoefficient = 12.5
+
+[Straight]
+BallSpeed = 50
+Damage = 10
 
 [Spike]
 ExplosionRadius = 16
@@ -10,3 +16,4 @@ JumpHeight = 50
 JumpDuration = 1
 BallSpeed = 50
 ExplosionDamage = 20
+AirTime = 3

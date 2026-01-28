@@ -255,19 +255,18 @@ reliable.OnClientEvent:Connect(function(buff, inst)
 				end
 			end
 		elseif id == 3 then -- LobbedProjectile
-			local value, value2, value3, value4, value5
+			local value, value2, value3, value4
 			value = buffer.readf64(incoming_buff, read(8))
 			value2 = Vector3.new(buffer.readf32(incoming_buff, read(4)), buffer.readf32(incoming_buff, read(4)), buffer.readf32(incoming_buff, read(4)))
 			value3 = Vector3.new(buffer.readf32(incoming_buff, read(4)), buffer.readf32(incoming_buff, read(4)), buffer.readf32(incoming_buff, read(4)))
-			value4 = buffer.readf64(incoming_buff, read(8))
 			incoming_ipos = incoming_ipos + 1
-			value5 = incoming_inst[incoming_ipos]
-			assert(value5 ~= nil, "received instance is nil!")
-			assert(value5:IsA("Model"), "received instance is not of the Model class!")
+			value4 = incoming_inst[incoming_ipos]
+			assert(value4 ~= nil, "received instance is nil!")
+			assert(value4:IsA("Model"), "received instance is not of the Model class!")
 			if reliable_events[3] then
-				task.spawn(reliable_events[3], value, value2, value3, value4, value5)
+				task.spawn(reliable_events[3], value, value2, value3, value4)
 			else
-				table.insert(reliable_event_queue[3], { value, value2, value3, value4, value5 })
+				table.insert(reliable_event_queue[3], { value, value2, value3, value4 })
 				if #reliable_event_queue[3] > 64 then
 					warn(`[ZAP] {#reliable_event_queue[3]} events in queue for LobbedProjectile. Did you forget to attach a listener?`)
 				end
@@ -366,7 +365,7 @@ local returns = {
 		end,
 	},
 	LobbedProjectile = {
-		SetCallback = function(Callback: (sentTime: (number), spawn: (Vector3), velocity: (Vector3), dtCoefficient: (number), target: (Model)) -> ()): () -> ()
+		SetCallback = function(Callback: (sentTime: (number), spawn: (Vector3), velocity: (Vector3), target: (Model)) -> ()): () -> ()
 			reliable_events[3] = Callback
 			for _, value in reliable_event_queue[3] do
 				task.spawn(Callback, unpack(value))

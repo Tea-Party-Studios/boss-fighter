@@ -15,15 +15,13 @@ function StraightAttack:OnEnter(data)
 	data.timer = 0
 	data.baller.MovementVelocity.PlaneVelocity = Vector2.zero
 
-	local target = data.players[1].Character :: Model
+	local target = data.target
 	local bossPos: Vector3 = data.baller.Torso.Position
 
 	local targetPos = target:GetPivot().Position
 
 	local direction = (targetPos - bossPos).Unit
-
-	local SPEED = 50
-	local velocity = direction * SPEED
+	local velocity = direction * ballerConfig.Straight.BallSpeed
 	local pos = bossPos
 
 	print(workspace:GetServerTimeNow())
@@ -36,12 +34,12 @@ function StraightAttack:OnEnter(data)
 		if dmg then
 			return
 		end
-		for _, part in workspace:GetPartBoundsInRadius(pos, 2) do
+		for _, part in workspace:GetPartBoundsInRadius(pos, ballerConfig.BallDiameter / 2) do
 			if not Players:GetPlayerFromCharacter(part.Parent) then
 				return
 			end
 			print "hit straight!"
-			part.Parent.Humanoid:TakeDamage(10)
+			part.Parent.Humanoid:TakeDamage(ballerConfig.Straight.Damage)
 			dmg = true
 			break
 		end
