@@ -135,6 +135,12 @@ if not RunService:IsRunning() then
 		UpdateStats = table.freeze({
 			Fire = noop
 		}),
+		StraightProjectile = table.freeze({
+			SetCallback = noop
+		}),
+		SpikeProjectile = table.freeze({
+			SetCallback = noop
+		}),
 		PlayerSync = table.freeze({
 			SetCallback = noop
 		}),
@@ -148,9 +154,6 @@ if not RunService:IsRunning() then
 			SetCallback = noop
 		}),
 		InIntermission = table.freeze({
-			SetCallback = noop
-		}),
-		DisplayProjectile = table.freeze({
 			SetCallback = noop
 		}),
 	}) :: Events
@@ -177,12 +180,13 @@ end
 
 RunService.Heartbeat:Connect(SendEvents)
 
-local reliable_events = table.create(4)
-local reliable_event_queue: { [number]: { any } } = table.create(4)
+local reliable_events = table.create(5)
+local reliable_event_queue: { [number]: { any } } = table.create(5)
+reliable_event_queue[2] = {}
+reliable_event_queue[4] = {}
 reliable_event_queue[0] = {}
 reliable_event_queue[3] = {}
 reliable_event_queue[1] = {}
-reliable_event_queue[2] = {}
 reliable.OnClientEvent:Connect(function(buff, inst)
 	incoming_buff = buff
 	incoming_inst = inst
@@ -191,7 +195,41 @@ reliable.OnClientEvent:Connect(function(buff, inst)
 	local len = buffer.len(buff)
 	while incoming_read < len do
 		local id = buffer.readu8(buff, read(1))
-		if id == 0 then -- PlayerSync
+		if id == 2 then -- StraightProjectile
+			local value, value2, value3, value4
+			value = buffer.readf64(incoming_buff, read(8))
+			value2 = Vector3.new(buffer.readf32(incoming_buff, read(4)), buffer.readf32(incoming_buff, read(4)), buffer.readf32(incoming_buff, read(4)))
+			value3 = Vector3.new(buffer.readf32(incoming_buff, read(4)), buffer.readf32(incoming_buff, read(4)), buffer.readf32(incoming_buff, read(4)))
+			incoming_ipos = incoming_ipos + 1
+			value4 = incoming_inst[incoming_ipos]
+			assert(value4 ~= nil, "received instance is nil!")
+			assert(value4:IsA("Model"), "received instance is not of the Model class!")
+			if reliable_events[2] then
+				task.spawn(reliable_events[2], value, value2, value3, value4)
+			else
+				table.insert(reliable_event_queue[2], { value, value2, value3, value4 })
+				if #reliable_event_queue[2] > 64 then
+					warn(`[ZAP] {#reliable_event_queue[2]} events in queue for StraightProjectile. Did you forget to attach a listener?`)
+				end
+			end
+		elseif id == 4 then -- SpikeProjectile
+			local value, value2, value3, value4
+			value = buffer.readf64(incoming_buff, read(8))
+			value2 = Vector3.new(buffer.readf32(incoming_buff, read(4)), buffer.readf32(incoming_buff, read(4)), buffer.readf32(incoming_buff, read(4)))
+			value3 = Vector3.new(buffer.readf32(incoming_buff, read(4)), buffer.readf32(incoming_buff, read(4)), buffer.readf32(incoming_buff, read(4)))
+			incoming_ipos = incoming_ipos + 1
+			value4 = incoming_inst[incoming_ipos]
+			assert(value4 ~= nil, "received instance is nil!")
+			assert(value4:IsA("Model"), "received instance is not of the Model class!")
+			if reliable_events[4] then
+				task.spawn(reliable_events[4], value, value2, value3, value4)
+			else
+				table.insert(reliable_event_queue[4], { value, value2, value3, value4 })
+				if #reliable_event_queue[4] > 64 then
+					warn(`[ZAP] {#reliable_event_queue[4]} events in queue for SpikeProjectile. Did you forget to attach a listener?`)
+				end
+			end
+		elseif id == 0 then -- PlayerSync
 			local value
 			local bool_1 = buffer.readu8(incoming_buff, read(1))
 			value = {  }
@@ -221,7 +259,10 @@ reliable.OnClientEvent:Connect(function(buff, inst)
 			value = buffer.readf64(incoming_buff, read(8))
 			value2 = Vector3.new(buffer.readf32(incoming_buff, read(4)), buffer.readf32(incoming_buff, read(4)), buffer.readf32(incoming_buff, read(4)))
 			value3 = Vector3.new(buffer.readf32(incoming_buff, read(4)), buffer.readf32(incoming_buff, read(4)), buffer.readf32(incoming_buff, read(4)))
-			value4 = buffer.readf64(incoming_buff, read(8))
+			incoming_ipos = incoming_ipos + 1
+			value4 = incoming_inst[incoming_ipos]
+			assert(value4 ~= nil, "received instance is nil!")
+			assert(value4:IsA("Model"), "received instance is not of the Model class!")
 			if reliable_events[3] then
 				task.spawn(reliable_events[3], value, value2, value3, value4)
 			else
@@ -240,19 +281,6 @@ reliable.OnClientEvent:Connect(function(buff, inst)
 				table.insert(reliable_event_queue[1], value)
 				if #reliable_event_queue[1] > 64 then
 					warn(`[ZAP] {#reliable_event_queue[1]} events in queue for InIntermission. Did you forget to attach a listener?`)
-				end
-			end
-		elseif id == 2 then -- DisplayProjectile
-			local value, value2, value3
-			value = buffer.readf64(incoming_buff, read(8))
-			value2 = Vector3.new(buffer.readf32(incoming_buff, read(4)), buffer.readf32(incoming_buff, read(4)), buffer.readf32(incoming_buff, read(4)))
-			value3 = Vector3.new(buffer.readf32(incoming_buff, read(4)), buffer.readf32(incoming_buff, read(4)), buffer.readf32(incoming_buff, read(4)))
-			if reliable_events[2] then
-				task.spawn(reliable_events[2], value, value2, value3)
-			else
-				table.insert(reliable_event_queue[2], { value, value2, value3 })
-				if #reliable_event_queue[2] > 64 then
-					warn(`[ZAP] {#reliable_event_queue[2]} events in queue for DisplayProjectile. Did you forget to attach a listener?`)
 				end
 			end
 		else
@@ -279,6 +307,30 @@ local returns = {
 			buffer.writeu8(outgoing_buff, outgoing_apos, NewStats["energy"])
 			alloc(1)
 			buffer.writeu8(outgoing_buff, outgoing_apos, NewStats["endurance"])
+		end,
+	},
+	StraightProjectile = {
+		SetCallback = function(Callback: (sentTime: (number), spawn: (Vector3), velocity: (Vector3), target: (Model)) -> ()): () -> ()
+			reliable_events[2] = Callback
+			for _, value in reliable_event_queue[2] do
+				task.spawn(Callback, unpack(value))
+			end
+			reliable_event_queue[2] = {}
+			return function()
+				reliable_events[2] = nil
+			end
+		end,
+	},
+	SpikeProjectile = {
+		SetCallback = function(Callback: (sentTime: (number), spawn: (Vector3), velocity: (Vector3), target: (Model)) -> ()): () -> ()
+			reliable_events[4] = Callback
+			for _, value in reliable_event_queue[4] do
+				task.spawn(Callback, unpack(value))
+			end
+			reliable_event_queue[4] = {}
+			return function()
+				reliable_events[4] = nil
+			end
 		end,
 	},
 	PlayerSync = {
@@ -313,7 +365,7 @@ local returns = {
 		end,
 	},
 	LobbedProjectile = {
-		SetCallback = function(Callback: (sentTime: (number), spawn: (Vector3), velocity: (Vector3), dtCoefficient: (number)) -> ()): () -> ()
+		SetCallback = function(Callback: (sentTime: (number), spawn: (Vector3), velocity: (Vector3), target: (Model)) -> ()): () -> ()
 			reliable_events[3] = Callback
 			for _, value in reliable_event_queue[3] do
 				task.spawn(Callback, unpack(value))
@@ -333,18 +385,6 @@ local returns = {
 			reliable_event_queue[1] = {}
 			return function()
 				reliable_events[1] = nil
-			end
-		end,
-	},
-	DisplayProjectile = {
-		SetCallback = function(Callback: (sentTime: (number), spawn: (Vector3), velocity: (Vector3)) -> ()): () -> ()
-			reliable_events[2] = Callback
-			for _, value in reliable_event_queue[2] do
-				task.spawn(Callback, unpack(value))
-			end
-			reliable_event_queue[2] = {}
-			return function()
-				reliable_events[2] = nil
 			end
 		end,
 	},

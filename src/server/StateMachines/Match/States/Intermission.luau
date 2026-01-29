@@ -1,6 +1,6 @@
 local ReplicatedStorage = game:GetService "ReplicatedStorage"
 local ServerScriptService = game:GetService "ServerScriptService"
-local match = require(ReplicatedStorage.Config.match)
+local matchConfig = require(ReplicatedStorage.Config.matchConfig)
 local zap = require(ServerScriptService.Server.zap)
 local robloxstatemachine = require(ReplicatedStorage.Packages.robloxstatemachine)
 local Match = script.Parent.Parent
@@ -12,7 +12,7 @@ Intermission.Transitions =
 	{ require(Match.Transitions.NoPlayersWaiting), require(Match.Transitions.IntermissionFinished) }
 
 function Intermission:OnEnter(data)
-	data.timer = match.IntermissionTime
+	data.timer = matchConfig.IntermissionTime
 	zap.InIntermission.FireAll(true)
 end
 

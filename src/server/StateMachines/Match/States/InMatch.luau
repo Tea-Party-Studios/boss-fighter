@@ -62,6 +62,8 @@ function InMatch:OnHeartbeat(data)
 	if data.boss.Parent ~= workspace then
 		data.bossStateMachine:Destroy()
 		data.boss = nil
+	else
+		data.bossStateMachine:ChangeData("players", data.players)
 	end
 end
 

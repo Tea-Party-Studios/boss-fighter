@@ -137,6 +137,20 @@ if not RunService:IsRunning() then
 		UpdateStats = table.freeze({
 			SetCallback = noop
 		}),
+		StraightProjectile = table.freeze({
+			Fire = noop,
+			FireAll = noop,
+			FireExcept = noop,
+			FireList = noop,
+			FireSet = noop
+		}),
+		SpikeProjectile = table.freeze({
+			Fire = noop,
+			FireAll = noop,
+			FireExcept = noop,
+			FireList = noop,
+			FireSet = noop
+		}),
 		PlayerSync = table.freeze({
 			Fire = noop,
 			FireAll = noop,
@@ -158,13 +172,6 @@ if not RunService:IsRunning() then
 			FireSet = noop
 		}),
 		InIntermission = table.freeze({
-			Fire = noop,
-			FireAll = noop,
-			FireExcept = noop,
-			FireList = noop,
-			FireSet = noop
-		}),
-		DisplayProjectile = table.freeze({
 			Fire = noop,
 			FireAll = noop,
 			FireExcept = noop,
@@ -267,6 +274,290 @@ local returns = {
 			reliable_events[2] = Callback
 			return function()
 				reliable_events[2] = nil
+			end
+		end,
+	},
+	StraightProjectile = {
+		Fire = function(Player: Player, sentTime: (number), spawn: (Vector3), velocity: (Vector3), target: (Model))
+			load_player(Player)
+			alloc(1)
+			buffer.writeu8(outgoing_buff, outgoing_apos, 2)
+			alloc(8)
+			buffer.writef64(outgoing_buff, outgoing_apos, sentTime)
+			alloc(4)
+			buffer.writef32(outgoing_buff, outgoing_apos, spawn.X)
+			alloc(4)
+			buffer.writef32(outgoing_buff, outgoing_apos, spawn.Y)
+			alloc(4)
+			buffer.writef32(outgoing_buff, outgoing_apos, spawn.Z)
+			alloc(4)
+			buffer.writef32(outgoing_buff, outgoing_apos, velocity.X)
+			alloc(4)
+			buffer.writef32(outgoing_buff, outgoing_apos, velocity.Y)
+			alloc(4)
+			buffer.writef32(outgoing_buff, outgoing_apos, velocity.Z)
+			assert(target:IsA("Model"), "received instance is not of the Model class!")
+			table.insert(outgoing_inst, target)
+			player_map[Player] = save()
+		end,
+		FireAll = function(sentTime: (number), spawn: (Vector3), velocity: (Vector3), target: (Model))
+			load_empty()
+			alloc(1)
+			buffer.writeu8(outgoing_buff, outgoing_apos, 2)
+			alloc(8)
+			buffer.writef64(outgoing_buff, outgoing_apos, sentTime)
+			alloc(4)
+			buffer.writef32(outgoing_buff, outgoing_apos, spawn.X)
+			alloc(4)
+			buffer.writef32(outgoing_buff, outgoing_apos, spawn.Y)
+			alloc(4)
+			buffer.writef32(outgoing_buff, outgoing_apos, spawn.Z)
+			alloc(4)
+			buffer.writef32(outgoing_buff, outgoing_apos, velocity.X)
+			alloc(4)
+			buffer.writef32(outgoing_buff, outgoing_apos, velocity.Y)
+			alloc(4)
+			buffer.writef32(outgoing_buff, outgoing_apos, velocity.Z)
+			assert(target:IsA("Model"), "received instance is not of the Model class!")
+			table.insert(outgoing_inst, target)
+			local buff, used, inst = outgoing_buff, outgoing_used, outgoing_inst
+			for _, player in Players:GetPlayers() do
+				load_player(player)
+				alloc(used)
+				buffer.copy(outgoing_buff, outgoing_apos, buff, 0, used)
+				table.move(inst, 1, #inst, #outgoing_inst + 1, outgoing_inst)
+				player_map[player] = save()
+			end
+		end,
+		FireExcept = function(Except: Player, sentTime: (number), spawn: (Vector3), velocity: (Vector3), target: (Model))
+			load_empty()
+			alloc(1)
+			buffer.writeu8(outgoing_buff, outgoing_apos, 2)
+			alloc(8)
+			buffer.writef64(outgoing_buff, outgoing_apos, sentTime)
+			alloc(4)
+			buffer.writef32(outgoing_buff, outgoing_apos, spawn.X)
+			alloc(4)
+			buffer.writef32(outgoing_buff, outgoing_apos, spawn.Y)
+			alloc(4)
+			buffer.writef32(outgoing_buff, outgoing_apos, spawn.Z)
+			alloc(4)
+			buffer.writef32(outgoing_buff, outgoing_apos, velocity.X)
+			alloc(4)
+			buffer.writef32(outgoing_buff, outgoing_apos, velocity.Y)
+			alloc(4)
+			buffer.writef32(outgoing_buff, outgoing_apos, velocity.Z)
+			assert(target:IsA("Model"), "received instance is not of the Model class!")
+			table.insert(outgoing_inst, target)
+			local buff, used, inst = outgoing_buff, outgoing_used, outgoing_inst
+			for _, player in Players:GetPlayers() do
+				if player ~= Except then
+					load_player(player)
+					alloc(used)
+					buffer.copy(outgoing_buff, outgoing_apos, buff, 0, used)
+					table.move(inst, 1, #inst, #outgoing_inst + 1, outgoing_inst)
+					player_map[player] = save()
+				end
+			end
+		end,
+		FireList = function(List: { [unknown]: Player }, sentTime: (number), spawn: (Vector3), velocity: (Vector3), target: (Model))
+			load_empty()
+			alloc(1)
+			buffer.writeu8(outgoing_buff, outgoing_apos, 2)
+			alloc(8)
+			buffer.writef64(outgoing_buff, outgoing_apos, sentTime)
+			alloc(4)
+			buffer.writef32(outgoing_buff, outgoing_apos, spawn.X)
+			alloc(4)
+			buffer.writef32(outgoing_buff, outgoing_apos, spawn.Y)
+			alloc(4)
+			buffer.writef32(outgoing_buff, outgoing_apos, spawn.Z)
+			alloc(4)
+			buffer.writef32(outgoing_buff, outgoing_apos, velocity.X)
+			alloc(4)
+			buffer.writef32(outgoing_buff, outgoing_apos, velocity.Y)
+			alloc(4)
+			buffer.writef32(outgoing_buff, outgoing_apos, velocity.Z)
+			assert(target:IsA("Model"), "received instance is not of the Model class!")
+			table.insert(outgoing_inst, target)
+			local buff, used, inst = outgoing_buff, outgoing_used, outgoing_inst
+			for _, player in List do
+				load_player(player)
+				alloc(used)
+				buffer.copy(outgoing_buff, outgoing_apos, buff, 0, used)
+				table.move(inst, 1, #inst, #outgoing_inst + 1, outgoing_inst)
+				player_map[player] = save()
+			end
+		end,
+		FireSet = function(Set: { [Player]: any }, sentTime: (number), spawn: (Vector3), velocity: (Vector3), target: (Model))
+			load_empty()
+			alloc(1)
+			buffer.writeu8(outgoing_buff, outgoing_apos, 2)
+			alloc(8)
+			buffer.writef64(outgoing_buff, outgoing_apos, sentTime)
+			alloc(4)
+			buffer.writef32(outgoing_buff, outgoing_apos, spawn.X)
+			alloc(4)
+			buffer.writef32(outgoing_buff, outgoing_apos, spawn.Y)
+			alloc(4)
+			buffer.writef32(outgoing_buff, outgoing_apos, spawn.Z)
+			alloc(4)
+			buffer.writef32(outgoing_buff, outgoing_apos, velocity.X)
+			alloc(4)
+			buffer.writef32(outgoing_buff, outgoing_apos, velocity.Y)
+			alloc(4)
+			buffer.writef32(outgoing_buff, outgoing_apos, velocity.Z)
+			assert(target:IsA("Model"), "received instance is not of the Model class!")
+			table.insert(outgoing_inst, target)
+			local buff, used, inst = outgoing_buff, outgoing_used, outgoing_inst
+			for player in Set do
+				load_player(player)
+				alloc(used)
+				buffer.copy(outgoing_buff, outgoing_apos, buff, 0, used)
+				table.move(inst, 1, #inst, #outgoing_inst + 1, outgoing_inst)
+				player_map[player] = save()
+			end
+		end,
+	},
+	SpikeProjectile = {
+		Fire = function(Player: Player, sentTime: (number), spawn: (Vector3), velocity: (Vector3), target: (Model))
+			load_player(Player)
+			alloc(1)
+			buffer.writeu8(outgoing_buff, outgoing_apos, 4)
+			alloc(8)
+			buffer.writef64(outgoing_buff, outgoing_apos, sentTime)
+			alloc(4)
+			buffer.writef32(outgoing_buff, outgoing_apos, spawn.X)
+			alloc(4)
+			buffer.writef32(outgoing_buff, outgoing_apos, spawn.Y)
+			alloc(4)
+			buffer.writef32(outgoing_buff, outgoing_apos, spawn.Z)
+			alloc(4)
+			buffer.writef32(outgoing_buff, outgoing_apos, velocity.X)
+			alloc(4)
+			buffer.writef32(outgoing_buff, outgoing_apos, velocity.Y)
+			alloc(4)
+			buffer.writef32(outgoing_buff, outgoing_apos, velocity.Z)
+			assert(target:IsA("Model"), "received instance is not of the Model class!")
+			table.insert(outgoing_inst, target)
+			player_map[Player] = save()
+		end,
+		FireAll = function(sentTime: (number), spawn: (Vector3), velocity: (Vector3), target: (Model))
+			load_empty()
+			alloc(1)
+			buffer.writeu8(outgoing_buff, outgoing_apos, 4)
+			alloc(8)
+			buffer.writef64(outgoing_buff, outgoing_apos, sentTime)
+			alloc(4)
+			buffer.writef32(outgoing_buff, outgoing_apos, spawn.X)
+			alloc(4)
+			buffer.writef32(outgoing_buff, outgoing_apos, spawn.Y)
+			alloc(4)
+			buffer.writef32(outgoing_buff, outgoing_apos, spawn.Z)
+			alloc(4)
+			buffer.writef32(outgoing_buff, outgoing_apos, velocity.X)
+			alloc(4)
+			buffer.writef32(outgoing_buff, outgoing_apos, velocity.Y)
+			alloc(4)
+			buffer.writef32(outgoing_buff, outgoing_apos, velocity.Z)
+			assert(target:IsA("Model"), "received instance is not of the Model class!")
+			table.insert(outgoing_inst, target)
+			local buff, used, inst = outgoing_buff, outgoing_used, outgoing_inst
+			for _, player in Players:GetPlayers() do
+				load_player(player)
+				alloc(used)
+				buffer.copy(outgoing_buff, outgoing_apos, buff, 0, used)
+				table.move(inst, 1, #inst, #outgoing_inst + 1, outgoing_inst)
+				player_map[player] = save()
+			end
+		end,
+		FireExcept = function(Except: Player, sentTime: (number), spawn: (Vector3), velocity: (Vector3), target: (Model))
+			load_empty()
+			alloc(1)
+			buffer.writeu8(outgoing_buff, outgoing_apos, 4)
+			alloc(8)
+			buffer.writef64(outgoing_buff, outgoing_apos, sentTime)
+			alloc(4)
+			buffer.writef32(outgoing_buff, outgoing_apos, spawn.X)
+			alloc(4)
+			buffer.writef32(outgoing_buff, outgoing_apos, spawn.Y)
+			alloc(4)
+			buffer.writef32(outgoing_buff, outgoing_apos, spawn.Z)
+			alloc(4)
+			buffer.writef32(outgoing_buff, outgoing_apos, velocity.X)
+			alloc(4)
+			buffer.writef32(outgoing_buff, outgoing_apos, velocity.Y)
+			alloc(4)
+			buffer.writef32(outgoing_buff, outgoing_apos, velocity.Z)
+			assert(target:IsA("Model"), "received instance is not of the Model class!")
+			table.insert(outgoing_inst, target)
+			local buff, used, inst = outgoing_buff, outgoing_used, outgoing_inst
+			for _, player in Players:GetPlayers() do
+				if player ~= Except then
+					load_player(player)
+					alloc(used)
+					buffer.copy(outgoing_buff, outgoing_apos, buff, 0, used)
+					table.move(inst, 1, #inst, #outgoing_inst + 1, outgoing_inst)
+					player_map[player] = save()
+				end
+			end
+		end,
+		FireList = function(List: { [unknown]: Player }, sentTime: (number), spawn: (Vector3), velocity: (Vector3), target: (Model))
+			load_empty()
+			alloc(1)
+			buffer.writeu8(outgoing_buff, outgoing_apos, 4)
+			alloc(8)
+			buffer.writef64(outgoing_buff, outgoing_apos, sentTime)
+			alloc(4)
+			buffer.writef32(outgoing_buff, outgoing_apos, spawn.X)
+			alloc(4)
+			buffer.writef32(outgoing_buff, outgoing_apos, spawn.Y)
+			alloc(4)
+			buffer.writef32(outgoing_buff, outgoing_apos, spawn.Z)
+			alloc(4)
+			buffer.writef32(outgoing_buff, outgoing_apos, velocity.X)
+			alloc(4)
+			buffer.writef32(outgoing_buff, outgoing_apos, velocity.Y)
+			alloc(4)
+			buffer.writef32(outgoing_buff, outgoing_apos, velocity.Z)
+			assert(target:IsA("Model"), "received instance is not of the Model class!")
+			table.insert(outgoing_inst, target)
+			local buff, used, inst = outgoing_buff, outgoing_used, outgoing_inst
+			for _, player in List do
+				load_player(player)
+				alloc(used)
+				buffer.copy(outgoing_buff, outgoing_apos, buff, 0, used)
+				table.move(inst, 1, #inst, #outgoing_inst + 1, outgoing_inst)
+				player_map[player] = save()
+			end
+		end,
+		FireSet = function(Set: { [Player]: any }, sentTime: (number), spawn: (Vector3), velocity: (Vector3), target: (Model))
+			load_empty()
+			alloc(1)
+			buffer.writeu8(outgoing_buff, outgoing_apos, 4)
+			alloc(8)
+			buffer.writef64(outgoing_buff, outgoing_apos, sentTime)
+			alloc(4)
+			buffer.writef32(outgoing_buff, outgoing_apos, spawn.X)
+			alloc(4)
+			buffer.writef32(outgoing_buff, outgoing_apos, spawn.Y)
+			alloc(4)
+			buffer.writef32(outgoing_buff, outgoing_apos, spawn.Z)
+			alloc(4)
+			buffer.writef32(outgoing_buff, outgoing_apos, velocity.X)
+			alloc(4)
+			buffer.writef32(outgoing_buff, outgoing_apos, velocity.Y)
+			alloc(4)
+			buffer.writef32(outgoing_buff, outgoing_apos, velocity.Z)
+			assert(target:IsA("Model"), "received instance is not of the Model class!")
+			table.insert(outgoing_inst, target)
+			local buff, used, inst = outgoing_buff, outgoing_used, outgoing_inst
+			for player in Set do
+				load_player(player)
+				alloc(used)
+				buffer.copy(outgoing_buff, outgoing_apos, buff, 0, used)
+				table.move(inst, 1, #inst, #outgoing_inst + 1, outgoing_inst)
+				player_map[player] = save()
 			end
 		end,
 	},
@@ -469,7 +760,7 @@ local returns = {
 		end,
 	},
 	LobbedProjectile = {
-		Fire = function(Player: Player, sentTime: (number), spawn: (Vector3), velocity: (Vector3), dtCoefficient: (number))
+		Fire = function(Player: Player, sentTime: (number), spawn: (Vector3), velocity: (Vector3), target: (Model))
 			load_player(Player)
 			alloc(1)
 			buffer.writeu8(outgoing_buff, outgoing_apos, 3)
@@ -487,11 +778,11 @@ local returns = {
 			buffer.writef32(outgoing_buff, outgoing_apos, velocity.Y)
 			alloc(4)
 			buffer.writef32(outgoing_buff, outgoing_apos, velocity.Z)
-			alloc(8)
-			buffer.writef64(outgoing_buff, outgoing_apos, dtCoefficient)
+			assert(target:IsA("Model"), "received instance is not of the Model class!")
+			table.insert(outgoing_inst, target)
 			player_map[Player] = save()
 		end,
-		FireAll = function(sentTime: (number), spawn: (Vector3), velocity: (Vector3), dtCoefficient: (number))
+		FireAll = function(sentTime: (number), spawn: (Vector3), velocity: (Vector3), target: (Model))
 			load_empty()
 			alloc(1)
 			buffer.writeu8(outgoing_buff, outgoing_apos, 3)
@@ -509,8 +800,8 @@ local returns = {
 			buffer.writef32(outgoing_buff, outgoing_apos, velocity.Y)
 			alloc(4)
 			buffer.writef32(outgoing_buff, outgoing_apos, velocity.Z)
-			alloc(8)
-			buffer.writef64(outgoing_buff, outgoing_apos, dtCoefficient)
+			assert(target:IsA("Model"), "received instance is not of the Model class!")
+			table.insert(outgoing_inst, target)
 			local buff, used, inst = outgoing_buff, outgoing_used, outgoing_inst
 			for _, player in Players:GetPlayers() do
 				load_player(player)
@@ -520,7 +811,7 @@ local returns = {
 				player_map[player] = save()
 			end
 		end,
-		FireExcept = function(Except: Player, sentTime: (number), spawn: (Vector3), velocity: (Vector3), dtCoefficient: (number))
+		FireExcept = function(Except: Player, sentTime: (number), spawn: (Vector3), velocity: (Vector3), target: (Model))
 			load_empty()
 			alloc(1)
 			buffer.writeu8(outgoing_buff, outgoing_apos, 3)
@@ -538,8 +829,8 @@ local returns = {
 			buffer.writef32(outgoing_buff, outgoing_apos, velocity.Y)
 			alloc(4)
 			buffer.writef32(outgoing_buff, outgoing_apos, velocity.Z)
-			alloc(8)
-			buffer.writef64(outgoing_buff, outgoing_apos, dtCoefficient)
+			assert(target:IsA("Model"), "received instance is not of the Model class!")
+			table.insert(outgoing_inst, target)
 			local buff, used, inst = outgoing_buff, outgoing_used, outgoing_inst
 			for _, player in Players:GetPlayers() do
 				if player ~= Except then
@@ -551,7 +842,7 @@ local returns = {
 				end
 			end
 		end,
-		FireList = function(List: { [unknown]: Player }, sentTime: (number), spawn: (Vector3), velocity: (Vector3), dtCoefficient: (number))
+		FireList = function(List: { [unknown]: Player }, sentTime: (number), spawn: (Vector3), velocity: (Vector3), target: (Model))
 			load_empty()
 			alloc(1)
 			buffer.writeu8(outgoing_buff, outgoing_apos, 3)
@@ -569,8 +860,8 @@ local returns = {
 			buffer.writef32(outgoing_buff, outgoing_apos, velocity.Y)
 			alloc(4)
 			buffer.writef32(outgoing_buff, outgoing_apos, velocity.Z)
-			alloc(8)
-			buffer.writef64(outgoing_buff, outgoing_apos, dtCoefficient)
+			assert(target:IsA("Model"), "received instance is not of the Model class!")
+			table.insert(outgoing_inst, target)
 			local buff, used, inst = outgoing_buff, outgoing_used, outgoing_inst
 			for _, player in List do
 				load_player(player)
@@ -580,7 +871,7 @@ local returns = {
 				player_map[player] = save()
 			end
 		end,
-		FireSet = function(Set: { [Player]: any }, sentTime: (number), spawn: (Vector3), velocity: (Vector3), dtCoefficient: (number))
+		FireSet = function(Set: { [Player]: any }, sentTime: (number), spawn: (Vector3), velocity: (Vector3), target: (Model))
 			load_empty()
 			alloc(1)
 			buffer.writeu8(outgoing_buff, outgoing_apos, 3)
@@ -598,8 +889,8 @@ local returns = {
 			buffer.writef32(outgoing_buff, outgoing_apos, velocity.Y)
 			alloc(4)
 			buffer.writef32(outgoing_buff, outgoing_apos, velocity.Z)
-			alloc(8)
-			buffer.writef64(outgoing_buff, outgoing_apos, dtCoefficient)
+			assert(target:IsA("Model"), "received instance is not of the Model class!")
+			table.insert(outgoing_inst, target)
 			local buff, used, inst = outgoing_buff, outgoing_used, outgoing_inst
 			for player in Set do
 				load_player(player)
@@ -692,138 +983,6 @@ local returns = {
 				bool_10 = bit32.bor(bool_10, 0b0000000000000001)
 			end
 			buffer.writeu8(outgoing_buff, bool_10_pos_1, bool_10)
-			local buff, used, inst = outgoing_buff, outgoing_used, outgoing_inst
-			for player in Set do
-				load_player(player)
-				alloc(used)
-				buffer.copy(outgoing_buff, outgoing_apos, buff, 0, used)
-				table.move(inst, 1, #inst, #outgoing_inst + 1, outgoing_inst)
-				player_map[player] = save()
-			end
-		end,
-	},
-	DisplayProjectile = {
-		Fire = function(Player: Player, sentTime: (number), spawn: (Vector3), velocity: (Vector3))
-			load_player(Player)
-			alloc(1)
-			buffer.writeu8(outgoing_buff, outgoing_apos, 2)
-			alloc(8)
-			buffer.writef64(outgoing_buff, outgoing_apos, sentTime)
-			alloc(4)
-			buffer.writef32(outgoing_buff, outgoing_apos, spawn.X)
-			alloc(4)
-			buffer.writef32(outgoing_buff, outgoing_apos, spawn.Y)
-			alloc(4)
-			buffer.writef32(outgoing_buff, outgoing_apos, spawn.Z)
-			alloc(4)
-			buffer.writef32(outgoing_buff, outgoing_apos, velocity.X)
-			alloc(4)
-			buffer.writef32(outgoing_buff, outgoing_apos, velocity.Y)
-			alloc(4)
-			buffer.writef32(outgoing_buff, outgoing_apos, velocity.Z)
-			player_map[Player] = save()
-		end,
-		FireAll = function(sentTime: (number), spawn: (Vector3), velocity: (Vector3))
-			load_empty()
-			alloc(1)
-			buffer.writeu8(outgoing_buff, outgoing_apos, 2)
-			alloc(8)
-			buffer.writef64(outgoing_buff, outgoing_apos, sentTime)
-			alloc(4)
-			buffer.writef32(outgoing_buff, outgoing_apos, spawn.X)
-			alloc(4)
-			buffer.writef32(outgoing_buff, outgoing_apos, spawn.Y)
-			alloc(4)
-			buffer.writef32(outgoing_buff, outgoing_apos, spawn.Z)
-			alloc(4)
-			buffer.writef32(outgoing_buff, outgoing_apos, velocity.X)
-			alloc(4)
-			buffer.writef32(outgoing_buff, outgoing_apos, velocity.Y)
-			alloc(4)
-			buffer.writef32(outgoing_buff, outgoing_apos, velocity.Z)
-			local buff, used, inst = outgoing_buff, outgoing_used, outgoing_inst
-			for _, player in Players:GetPlayers() do
-				load_player(player)
-				alloc(used)
-				buffer.copy(outgoing_buff, outgoing_apos, buff, 0, used)
-				table.move(inst, 1, #inst, #outgoing_inst + 1, outgoing_inst)
-				player_map[player] = save()
-			end
-		end,
-		FireExcept = function(Except: Player, sentTime: (number), spawn: (Vector3), velocity: (Vector3))
-			load_empty()
-			alloc(1)
-			buffer.writeu8(outgoing_buff, outgoing_apos, 2)
-			alloc(8)
-			buffer.writef64(outgoing_buff, outgoing_apos, sentTime)
-			alloc(4)
-			buffer.writef32(outgoing_buff, outgoing_apos, spawn.X)
-			alloc(4)
-			buffer.writef32(outgoing_buff, outgoing_apos, spawn.Y)
-			alloc(4)
-			buffer.writef32(outgoing_buff, outgoing_apos, spawn.Z)
-			alloc(4)
-			buffer.writef32(outgoing_buff, outgoing_apos, velocity.X)
-			alloc(4)
-			buffer.writef32(outgoing_buff, outgoing_apos, velocity.Y)
-			alloc(4)
-			buffer.writef32(outgoing_buff, outgoing_apos, velocity.Z)
-			local buff, used, inst = outgoing_buff, outgoing_used, outgoing_inst
-			for _, player in Players:GetPlayers() do
-				if player ~= Except then
-					load_player(player)
-					alloc(used)
-					buffer.copy(outgoing_buff, outgoing_apos, buff, 0, used)
-					table.move(inst, 1, #inst, #outgoing_inst + 1, outgoing_inst)
-					player_map[player] = save()
-				end
-			end
-		end,
-		FireList = function(List: { [unknown]: Player }, sentTime: (number), spawn: (Vector3), velocity: (Vector3))
-			load_empty()
-			alloc(1)
-			buffer.writeu8(outgoing_buff, outgoing_apos, 2)
-			alloc(8)
-			buffer.writef64(outgoing_buff, outgoing_apos, sentTime)
-			alloc(4)
-			buffer.writef32(outgoing_buff, outgoing_apos, spawn.X)
-			alloc(4)
-			buffer.writef32(outgoing_buff, outgoing_apos, spawn.Y)
-			alloc(4)
-			buffer.writef32(outgoing_buff, outgoing_apos, spawn.Z)
-			alloc(4)
-			buffer.writef32(outgoing_buff, outgoing_apos, velocity.X)
-			alloc(4)
-			buffer.writef32(outgoing_buff, outgoing_apos, velocity.Y)
-			alloc(4)
-			buffer.writef32(outgoing_buff, outgoing_apos, velocity.Z)
-			local buff, used, inst = outgoing_buff, outgoing_used, outgoing_inst
-			for _, player in List do
-				load_player(player)
-				alloc(used)
-				buffer.copy(outgoing_buff, outgoing_apos, buff, 0, used)
-				table.move(inst, 1, #inst, #outgoing_inst + 1, outgoing_inst)
-				player_map[player] = save()
-			end
-		end,
-		FireSet = function(Set: { [Player]: any }, sentTime: (number), spawn: (Vector3), velocity: (Vector3))
-			load_empty()
-			alloc(1)
-			buffer.writeu8(outgoing_buff, outgoing_apos, 2)
-			alloc(8)
-			buffer.writef64(outgoing_buff, outgoing_apos, sentTime)
-			alloc(4)
-			buffer.writef32(outgoing_buff, outgoing_apos, spawn.X)
-			alloc(4)
-			buffer.writef32(outgoing_buff, outgoing_apos, spawn.Y)
-			alloc(4)
-			buffer.writef32(outgoing_buff, outgoing_apos, spawn.Z)
-			alloc(4)
-			buffer.writef32(outgoing_buff, outgoing_apos, velocity.X)
-			alloc(4)
-			buffer.writef32(outgoing_buff, outgoing_apos, velocity.Y)
-			alloc(4)
-			buffer.writef32(outgoing_buff, outgoing_apos, velocity.Z)
 			local buff, used, inst = outgoing_buff, outgoing_used, outgoing_inst
 			for player in Set do
 				load_player(player)
