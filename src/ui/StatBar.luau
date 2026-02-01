@@ -12,7 +12,7 @@ local function tweenGradient(object: UIGradient)
 	tween:Play()
 end
 
-local function StarBar(props: {
+local function StatBar(props: {
 	PrimaryColor: Color3,
 	PlusMinusColor: Color3,
 	FillColor: Color3,
@@ -119,4 +119,4 @@ local function StarBar(props: {
 	}
 end
 
-return StarBar
+return StatBar

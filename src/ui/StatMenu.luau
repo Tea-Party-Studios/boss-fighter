@@ -1,7 +1,6 @@
 local ReplicatedStorage = game:GetService "ReplicatedStorage"
-local TweenService = game:GetService "TweenService"
 local Ability = require(script.Parent.Ability)
-local StarBar = require(script.Parent.StarBar)
+local StatBar = require(script.Parent.StatBar)
 local Tooltip = require(script.Parent.Tooltip)
 local vide = require(ReplicatedStorage.Packages.vide)
 local vide_sources = require(ReplicatedStorage.Shared.vide_sources)
@@ -193,7 +192,7 @@ return function(props: {
 					BackgroundTransparency = 1,
 				},
 			},
-			StarBar { --strength bar
+			StatBar { --strength bar
 				PrimaryColor = Color3.new(1, 0, 0),
 				PlusMinusColor = Color3.new(0.32549, 0, 0),
 				FillColor = Color3.new(0.694118, 0, 0),
@@ -203,7 +202,7 @@ return function(props: {
 				RemainingPoints = pointsRemaining,
 				Counter = strengthCount,
 			},
-			StarBar { --endurance bar
+			StatBar { --endurance bar
 				PrimaryColor = Color3.new(0, 1, 0.05098),
 				PlusMinusColor = Color3.new(0.054902, 0.32549, 0),
 				FillColor = Color3.new(0.113725, 0.694118, 0),
@@ -213,7 +212,7 @@ return function(props: {
 				RemainingPoints = pointsRemaining,
 				Counter = enduranceCount,
 			},
-			StarBar { --energy bar
+			StatBar { --energy bar
 				PrimaryColor = Color3.new(0.984314, 1, 0),
 				PlusMinusColor = Color3.new(0.447059, 0.439216, 0),
 				FillColor = Color3.new(0.760784, 0.772549, 0),
