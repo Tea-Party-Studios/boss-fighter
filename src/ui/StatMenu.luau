@@ -1,13 +1,14 @@
 local ReplicatedStorage = game:GetService "ReplicatedStorage"
 local TweenService = game:GetService "TweenService"
+local UserInputService = game:GetService("UserInputService")
 local vide = require(ReplicatedStorage.Packages.vide)
 local vide_sources = require(ReplicatedStorage.Shared.vide_sources)
 local create = vide.create
 local derive = vide.derive
 local show = vide.show
 local source = vide.source
-
-
+local action = vide.action
+local cleanup = vide.cleanup 
 
 
 local function tweenGradient(object: UIGradient,tweenType)
@@ -22,6 +23,20 @@ local function tweenGradient(object: UIGradient,tweenType)
 		local tween = TweenService:Create(object, gradientInfo, { Rotation = 180 })
 		tween:Play()
 	end
+end
+
+local mouseX = source(0)
+local mouseY = source(0)
+
+local function mouseChanged(mouse)
+	return action(function()
+		local connection = mouse.Move:Connect(function()
+			local v = UserInputService:GetMouseLocation()
+			mouseX(v.X)
+			mouseY(v.Y)
+		end)
+		cleanup(connection)
+	end)
 end
 
 local bar = function(props: {
@@ -135,12 +150,22 @@ local abilityDesc = function(props: {
 	Name: string,
 	Desc: string,
 })
+
+	local newPos = derive(function()
+		--return UDim2.fromScale((mouseX()+100)/1920,(mouseY()+150)/1080)
+		return UDim2.fromOffset(mouseX(),mouseY())
+	end)
 	local desc = create "ImageLabel" {
 		Image = "rbxassetid://104819912607527",
 		BackgroundTransparency = 1,
 		Size = UDim2.fromScale(240/1800,114/900),
-		Position = UDim2.fromScale(1052/1800,401/900),
+		Position = newPos,
+		AnchorPoint = Vector2.new(1,1),
 		ZIndex = 3,
+
+		create "UIAspectRatioConstraint" {
+			AspectRatio = 240/114
+		},
 		create "TextLabel" {
 			Text = props.Name,
 			AnchorPoint = Vector2.new(0.5,0.5),
@@ -321,6 +346,12 @@ return function(props: {
 		Size = UDim2.fromScale(1, 1),
 		BackgroundColor3 = Color3.fromRGB(107, 92, 92),
 		BackgroundTransparency = 1,
+		show(onHover,function()
+			return abilityDesc {
+				Name = hoveredAbility().Name,
+				Desc = hoveredAbility().Desc,
+			}
+		end),
 		create "Frame" { --main frame 
 			Size = UDim2.fromScale(1800 / 1920, 900 / 1080),
 			BackgroundColor3 = Color3.new(0, 0, 0),
@@ -375,12 +406,6 @@ return function(props: {
 					Hovered = hoveredAbility,
 				}),
 			},
-			show(onHover,function()
-				return abilityDesc {
-					Name = hoveredAbility().Name,
-					Desc = hoveredAbility().Desc,
-				}
-			end),
 			create "ImageButton" { --save button
 				Image = "rbxassetid://100552236979659",
 				Size = UDim2.fromScale(220 / 1800, 37 / 900),
@@ -430,6 +455,7 @@ return function(props: {
 				Counter = energyCount,
 			},
 			freePoints, --free points
+			mouseChanged(vide_sources.Mouse())
 			},
 		}
 end
