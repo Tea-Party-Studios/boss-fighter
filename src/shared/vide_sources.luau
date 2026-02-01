@@ -12,4 +12,5 @@ return {
 		enduranceCount = source(0),
 	},
 	Humanoid = source(nil),
+	Mouse = source(nil),
 }
