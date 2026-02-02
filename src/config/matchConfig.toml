@@ -1,1 +1,4 @@
 IntermissionTime = 20
+
+SpawnRadius = 50
+SpawnPosition = [3.276,43.5,-220]

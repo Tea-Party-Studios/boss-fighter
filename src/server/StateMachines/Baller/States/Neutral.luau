@@ -1,4 +1,5 @@
 local ReplicatedStorage = game:GetService "ReplicatedStorage"
+local ballerConfig = require(ReplicatedStorage.Config.ballerConfig)
 local robloxstatemachine = require(ReplicatedStorage.Packages.robloxstatemachine)
 local Baller = script.Parent.Parent
 local State = robloxstatemachine.State
@@ -31,9 +32,9 @@ function Neutral:OnHeartbeat(data, dt)
 	local dist = (ballerPos - targetPos).Magnitude
 
 	if dist < 40 then
-		baller.MovementVelocity.PlaneVelocity = Vector2.new(0, -5)
+		baller.MovementVelocity.PlaneVelocity = Vector2.new(0, -ballerConfig.BackwardWalkSpeed)
 	elseif dist > 100 then
-		baller.MovementVelocity.PlaneVelocity = Vector2.new(0, 2)
+		baller.MovementVelocity.PlaneVelocity = Vector2.new(0, ballerConfig.ForwardWalkSpeed)
 	end
 	if data.timer > 1 then
 		data.timer -= 1

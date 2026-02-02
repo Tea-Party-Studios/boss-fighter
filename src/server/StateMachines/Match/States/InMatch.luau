@@ -3,6 +3,7 @@ local Players = game:GetService "Players"
 local ReplicatedStorage = game:GetService "ReplicatedStorage"
 local ServerScriptService = game:GetService "ServerScriptService"
 local States = ServerScriptService.Server.StateMachines.Baller.States
+local matchConfig = require(ReplicatedStorage.Config.matchConfig)
 local robloxstatemachine = require(ReplicatedStorage.Packages.robloxstatemachine)
 local PlayerIsAlive = require(ReplicatedStorage.Shared.PlayerIsAlive)
 local Match = script.Parent.Parent
@@ -23,22 +24,23 @@ end
 
 function InMatch:OnEnter(data)
 	local eligiblePlayers = allEligiblePlayers(Players:GetPlayers())
-
-	local arena = ReplicatedStorage.Shared.models.Arena:Clone()
-	arena.Parent = workspace
 	for _, p in eligiblePlayers do
-		local function getRandomPositionInPart(Part: BasePart)
-			local cframe = Part.CFrame
-			--2.5 on the yAxis is half the height of a character,maybe we can calculate it if it matters later
-			cframe *= CFrame.new(Part.Size.X * (math.random() - 0.5), 2.5, Part.Size.Z * (math.random() - 0.5))
-			return cframe
-		end
-		p.Character:PivotTo(getRandomPositionInPart(arena.PlayerRange))
+		local character = p.Character
+		local angle = math.rad(math.random() * 360)
+		local radius_percentage = math.random(0.5, 1)
+		--hardcoded 43.5 so far
+		local center = CFrame.new(unpack(matchConfig.SpawnPosition))
+		character:PivotTo(
+			center
+				+ Vector3.new(math.sin(angle) * radius_percentage, 0, math.cos(angle) * radius_percentage)
+					* matchConfig.SpawnRadius
+		)
+		--p.Character:PivotTo(getRandomPositionInPart(arena.PlayerRange))
 	end
 
 	local boss = ReplicatedStorage.Shared.models.Baller:Clone()
 	boss.Parent = workspace
-	boss:PivotTo(arena:GetPivot() + Vector3.new(0, 50, 0))
+	boss:PivotTo(CFrame.new(0, 50, 0))
 	boss.PrimaryPart:SetNetworkOwner(nil)
 	data.bossStateMachine = robloxstatemachine.new(
 		"Neutral",
@@ -47,7 +49,6 @@ function InMatch:OnEnter(data)
 	)
 
 	data.players = eligiblePlayers
-	data.arena = arena
 	data.boss = boss
 end
 
@@ -70,7 +71,6 @@ end
 function InMatch:OnLeave(data)
 	data.bossStateMachine:Destroy()
 	Debris:AddItem(data.boss, 0)
-	Debris:AddItem(data.arena, 0)
 	for _, player in data.players do
 		Debris:AddItem(player.Character, 0)
 	end

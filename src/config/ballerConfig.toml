@@ -1,4 +1,6 @@
 BallDiameter = 4
+ForwardWalkSpeed = 6
+BackwardWalkSpeed = 12
 
 [Lob]
 MinAngle = 40

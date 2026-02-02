@@ -18,7 +18,7 @@ function Spike:OnEnter(data: { baller: Model })
 	data.timer = 0
 	TweenService:Create(
 		data.baller.PrimaryPart,
-		TweenInfo.new(ballerConfig.Spike.JumpDuration, Enum.EasingStyle.Linear),
+		TweenInfo.new(ballerConfig.Spike.JumpDuration, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
 		{ CFrame = data.baller.PrimaryPart.CFrame + Vector3.yAxis * ballerConfig.Spike.JumpHeight }
 	):Play()
 end
@@ -65,7 +65,7 @@ function Spike:OnHeartbeat(data, dt)
 	elseif justCrossed(ballerConfig.Spike.AirTime, data.timer, dt) then
 		TweenService:Create(
 			data.baller.PrimaryPart,
-			TweenInfo.new(ballerConfig.Spike.JumpDuration, Enum.EasingStyle.Linear),
+			TweenInfo.new(ballerConfig.Spike.JumpDuration, Enum.EasingStyle.Quad, Enum.EasingDirection.In),
 			{ CFrame = data.baller.PrimaryPart.CFrame - Vector3.yAxis * ballerConfig.Spike.JumpHeight }
 		):Play()
 	elseif justCrossed(ballerConfig.Spike.AirTime + ballerConfig.Spike.JumpDuration, data.timer, dt) then
