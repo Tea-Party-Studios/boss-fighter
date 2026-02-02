@@ -63,9 +63,9 @@ function StraightAttack:OnHeartbeat(data, dt)
 	local dist = (ballerPos - targetPos).Magnitude
 
 	if dist < 40 then
-		baller.MovementVelocity.PlaneVelocity = Vector2.new(0, -2)
+		baller.MovementVelocity.PlaneVelocity = Vector2.new(0, -ballerConfig.BackwardWalkSpeed)
 	elseif dist > 100 then
-		baller.MovementVelocity.PlaneVelocity = Vector2.new(0, 2)
+		baller.MovementVelocity.PlaneVelocity = Vector2.new(0, ballerConfig.ForwardWalkSpeed)
 	end
 
 	if justCrossed(4, data.timer, dt) then
