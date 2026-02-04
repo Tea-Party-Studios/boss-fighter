@@ -51,8 +51,9 @@ function Spike:OnHeartbeat(data, dt)
 			local damagedCharacters = {}
 
 			if raycastResult then
-				print "damaging explosion!!"
-				for _, playerPart in workspace:GetPartBoundsInRadius(nextPos, ballerConfig.Spike.ExplosionRadius) do
+				for _, playerPart in
+					workspace:GetPartBoundsInRadius(raycastResult.Position, ballerConfig.Spike.ExplosionRadius)
+				do
 					if not Players:GetPlayerFromCharacter(playerPart.Parent) then
 						continue
 					end

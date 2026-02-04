@@ -24,7 +24,6 @@ function StraightAttack:OnEnter(data)
 	local velocity = direction * ballerConfig.Straight.BallSpeed
 	local pos = bossPos
 
-	print(workspace:GetServerTimeNow())
 	zap.StraightProjectile.FireAll(workspace:GetServerTimeNow(), bossPos, velocity, target)
 
 	local dmg = false

@@ -76,7 +76,7 @@ zap.SpikeProjectile.SetCallback(function(sentTime: number, spawn: Vector3, veloc
 			explosion.Anchored = true
 			explosion.Transparency = 0.7
 			explosion.Material = Enum.Material.SmoothPlastic
-			explosion.Position = nextPos
+			explosion.Position = raycastResult.Position
 			Debris:AddItem(explosion, 0.5)
 			projectile:Destroy()
 			cn:Disconnect()

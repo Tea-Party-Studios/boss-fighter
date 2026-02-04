@@ -28,7 +28,6 @@ function InMatch:OnEnter(data)
 		local character = p.Character
 		local angle = math.rad(math.random() * 360)
 		local radius_percentage = math.random(0.5, 1)
-		--hardcoded 43.5 so far
 		local center = CFrame.new(unpack(matchConfig.SpawnPosition))
 		character:PivotTo(
 			center
