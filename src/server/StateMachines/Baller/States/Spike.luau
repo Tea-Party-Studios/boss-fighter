@@ -48,15 +48,19 @@ function Spike:OnHeartbeat(data, dt)
 			local nextPos = pos + velocity * dt
 			local raycastResult = workspace:Raycast(pos, nextPos - pos, raycastParams)
 
+			local damagedCharacters = {}
+
 			if raycastResult then
 				print "damaging explosion!!"
 				for _, playerPart in workspace:GetPartBoundsInRadius(nextPos, ballerConfig.Spike.ExplosionRadius) do
 					if not Players:GetPlayerFromCharacter(playerPart.Parent) then
 						continue
 					end
-					--TODO: this only damages one player
+					if damagedCharacters[playerPart.Parent] then
+						continue
+					end
+					damagedCharacters[playerPart.Parent] = true
 					playerPart.Parent.Humanoid:TakeDamage(ballerConfig.Spike.ExplosionDamage)
-					break
 				end
 				data.heartbeat:Disconnect()
 			end
