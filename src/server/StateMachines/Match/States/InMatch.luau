@@ -39,6 +39,7 @@ function InMatch:OnEnter(data)
 	local boss = ReplicatedStorage.Shared.models.Baller:Clone()
 	boss.Parent = workspace
 	boss:PivotTo(arena:GetPivot() + Vector3.new(0, 50, 0))
+	boss.Torso:AddTag "Rainbow"
 	boss.PrimaryPart:SetNetworkOwner(nil)
 	data.bossStateMachine = robloxstatemachine.new(
 		"Neutral",

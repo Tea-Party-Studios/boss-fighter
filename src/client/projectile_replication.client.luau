@@ -21,6 +21,7 @@ zap.StraightProjectile.SetCallback(function(sentTime: number, spawn: Vector3, ve
 	projectile.Size = Vector3.one * ballerConfig.BallDiameter
 	projectile.CanCollide = false
 	projectile.Color = Color3.new(1, 0, 0)
+	projectile:AddTag "Rainbow"
 	projectile.Parent = workspace
 	projectile.Anchored = true
 	--print(velocity)
@@ -58,6 +59,7 @@ zap.SpikeProjectile.SetCallback(function(sentTime: number, spawn: Vector3, veloc
 	projectile.Color = Color3.new(1, 0, 0)
 	projectile.Parent = workspace
 	projectile.Anchored = true
+	projectile:AddTag "Rainbow"
 	projectile.Position = pos
 	projectile.Material = Enum.Material.SmoothPlastic
 
@@ -72,6 +74,7 @@ zap.SpikeProjectile.SetCallback(function(sentTime: number, spawn: Vector3, veloc
 			explosion.Size = Vector3.one * ballerConfig.Spike.ExplosionRadius * 2
 			explosion.CanCollide = false
 			explosion.Color = Color3.new(1, 0, 0)
+			explosion:AddTag "Rainbow"
 			explosion.Parent = workspace
 			explosion.Anchored = true
 			explosion.Transparency = 0.7
@@ -135,6 +138,7 @@ zap.LobbedProjectile.SetCallback(function(sentTime: number, spawn: Vector3, init
 	projectile.Size = Vector3.one * 4
 	projectile.CanCollide = false
 	projectile.Color = Color3.new(1, 0, 0)
+	projectile:AddTag "Rainbow"
 	projectile.Parent = workspace
 	projectile.Anchored = true
 	projectile.Position = pos
